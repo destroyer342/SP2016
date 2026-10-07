@@ -18,23 +18,2523 @@ Screens:
             - dcdClsBody:
                 Control: DataCard@1.0.2
                 Properties:
-                  Height: =800
+                  Height: =1892
                   Width: =Parent.Width
                   X: =0
                   Y: =0
                 Children:
-                  - lblClsBodyPlaceholder:
-                      Control: Label@2.5.1
+                  - conClsHeader:
+                      Control: GroupContainer@1.5.0
+                      Variant: ManualLayout
                       Properties:
-                        Color: =RGBA(32, 31, 30, 1)
-                        Font: =Font.'Segoe UI'
-                        Height: =32
-                        Size: =11
-                        Text: ="Body goes here"
-                        VerticalAlign: =VerticalAlign.Middle
-                        Width: =400
+                        BorderStyle: =BorderStyle.None
+                        DropShadow: =DropShadow.None
+                        Height: =56
+                        Width: =Parent.Width - 48
                         X: =24
-                        Y: =24
+                        Y: =16
+                      Children:
+                        - lblClsPageTitle:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =RGBA(16, 42, 67, 1)
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =30
+                              Size: =18
+                              Text: ="Project closure"
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =Parent.Width - 560
+                              X: =0
+                              Y: =0
+                        - lblClsPageSubtitle:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =RGBA(96, 94, 92, 1)
+                              Font: =Font.'Segoe UI'
+                              Height: =20
+                              Size: =11
+                              Text: ="Capture the actual figures and explain the variance against the original and final plan."
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =Parent.Width - 560
+                              X: =0
+                              Y: =30
+                        - btnClsReadOnlyBadge:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderThickness: =0
+                              Color: =RGBA(0, 94, 162, 1)
+                              DisplayMode: =DisplayMode.View
+                              Fill: =RGBA(229, 241, 250, 1)
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =28
+                              HoverFill: =Self.Fill
+                              RadiusBottomLeft: =12
+                              RadiusBottomRight: =12
+                              RadiusTopLeft: =12
+                              RadiusTopRight: =12
+                              Size: =10
+                              Text: =If(gblRole <> "Applicant (CI)", "Read only · viewing as " & gblRole, "Read only · this PEF is " & Lower(gblPEF.Status))
+                              Tooltip: ="Only the applicant (CI) can edit a PEF, and only while it is Draft or Rejected"
+                              Visible: =gblPEF.Close && gblEditMode = DisplayMode.View
+                              Width: =360
+                              X: =Parent.Width - 536
+                              Y: =14
+                        - btnClsSampleActuals:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderColor: =RGBA(0, 94, 162, 1)
+                              BorderThickness: =1
+                              Color: =RGBA(0, 94, 162, 1)
+                              Fill: =RGBA(255, 255, 255, 1)
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =32
+                              HoverFill: =RGBA(229, 241, 250, 1)
+                              OnSelect: |-
+                                =Set(gblActuals, gblSampleActuals);
+                                Notify("Sample actuals loaded (demo data).", NotificationType.Information)
+                              RadiusBottomLeft: =4
+                              RadiusBottomRight: =4
+                              RadiusTopLeft: =4
+                              RadiusTopRight: =4
+                              Size: =11
+                              Text: ="Fill sample actuals"
+                              Tooltip: |-
+                                ="Demo only: fill the actuals with realistic sample figures"
+                              Visible: =gblPEF.Close && gblEditMode = DisplayMode.Edit
+                              Width: =168
+                              X: =Parent.Width - 344
+                              Y: =12
+                        - btnClsReview:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderThickness: =0
+                              Color: =RGBA(255, 255, 255, 1)
+                              Fill: =RGBA(0, 94, 162, 1)
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =32
+                              HoverFill: =RGBA(0, 76, 132, 1)
+                              OnSelect: =Navigate(scrReview, ScreenTransition.Fade)
+                              RadiusBottomLeft: =4
+                              RadiusBottomRight: =4
+                              RadiusTopLeft: =4
+                              RadiusTopRight: =4
+                              Size: =11
+                              Text: ="Review closure"
+                              Tooltip: ="Check the closure for missing information and submit it for approval"
+                              Visible: =gblPEF.Close
+                              Width: =160
+                              X: =Parent.Width - 160
+                              Y: =12
+                  - conClsNotStarted:
+                      Control: GroupContainer@1.5.0
+                      Variant: ManualLayout
+                      Properties:
+                        BorderStyle: =BorderStyle.None
+                        DropShadow: =DropShadow.None
+                        Fill: =RGBA(229, 241, 250, 1)
+                        Height: =72
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        Visible: =!gblPEF.Close
+                        Width: =Parent.Width - 48
+                        X: =24
+                        Y: =88
+                      Children:
+                        - icoClsNotStarted:
+                            Control: Classic/Icon@2.5.0
+                            Properties:
+                              Color: =RGBA(0, 94, 162, 1)
+                              Height: =24
+                              Icon: =Icon.Information
+                              Width: =24
+                              X: =20
+                              Y: =24
+                        - lblClsNotStarted:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =RGBA(16, 42, 67, 1)
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =72
+                              Size: =11
+                              Text: ="Closure has not been started. Tick Close Project on the Cover Page to capture actuals."
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =Parent.Width - 256
+                              X: =56
+                              Y: =0
+                        - btnClsGoCover:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderColor: =RGBA(0, 94, 162, 1)
+                              BorderThickness: =1
+                              Color: =RGBA(0, 94, 162, 1)
+                              Fill: =RGBA(255, 255, 255, 1)
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =32
+                              HoverFill: =RGBA(229, 241, 250, 1)
+                              OnSelect: =Navigate(scrCoverPage, ScreenTransition.None)
+                              RadiusBottomLeft: =4
+                              RadiusBottomRight: =4
+                              RadiusTopLeft: =4
+                              RadiusTopRight: =4
+                              Size: =11
+                              Text: ="Go to Cover Page"
+                              Width: =168
+                              X: =Parent.Width - 184
+                              Y: =20
+                  - conClsSecMotivation:
+                      Control: GroupContainer@1.5.0
+                      Variant: ManualLayout
+                      Properties:
+                        BorderStyle: =BorderStyle.None
+                        DropShadow: =DropShadow.Light
+                        Fill: =RGBA(255, 255, 255, 1)
+                        Height: =256
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        Width: =Parent.Width - 48
+                        X: =24
+                        Y: =If(gblPEF.Close, 88, 176)
+                      Children:
+                        - lblClsMotivationTitle:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =RGBA(16, 42, 67, 1)
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =24
+                              Size: =13
+                              Text: ="Closure motivation"
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =12
+                        - lblClsMotivationHint:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =RGBA(96, 94, 92, 1)
+                              Font: =Font.'Segoe UI'
+                              Height: =18
+                              Size: =9
+                              Text: ="Required to close the project. The approvers read this before they sign off the closure."
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =36
+                        - recClsMotivationLine:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              Fill: =RGBA(229, 231, 235, 1)
+                              Height: =1
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =60
+                        - conClsFldClosureDescription:
+                            Control: GroupContainer@1.5.0
+                            Variant: ManualLayout
+                            Properties:
+                              BorderStyle: =BorderStyle.None
+                              DropShadow: =DropShadow.None
+                              Height: =168
+                              Width: =(Parent.Width - 64) / 3 * 2 + 16
+                              X: =16
+                              Y: =72
+                            Children:
+                              - lblClsClosureDescriptionLbl:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(96, 94, 92, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =20
+                                    Size: =10
+                                    Text: ="Closure description *"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width
+                                    X: =0
+                                    Y: =0
+                              - txtClsClosureDescription:
+                                  Control: Classic/TextInput@2.3.2
+                                  Properties:
+                                    BorderColor: =If(gblShowErrors && IsBlank(gblPEF.ClosureDescription), RGBA(196, 30, 58, 1), RGBA(200, 205, 214, 1))
+                                    BorderThickness: =1
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Default: =gblPEF.ClosureDescription
+                                    DisplayMode: =If(gblPEF.Close, gblEditMode, DisplayMode.View)
+                                    Fill: =RGBA(255, 255, 255, 1)
+                                    FocusedBorderColor: =RGBA(0, 94, 162, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =120
+                                    HintText: =If(gblPEF.Close && gblEditMode = DisplayMode.View, "No closure description was entered.", "Explain time and cost overruns, deliverables not achieved, etc.")
+                                    HoverBorderColor: =RGBA(0, 94, 162, 1)
+                                    Mode: =TextMode.MultiLine
+                                    OnChange: |-
+                                      =Set(gblPEF, Patch(gblPEF, {ClosureDescription: Self.Text}))
+                                    PaddingLeft: =8
+                                    RadiusBottomLeft: =4
+                                    RadiusBottomRight: =4
+                                    RadiusTopLeft: =4
+                                    RadiusTopRight: =4
+                                    Size: =11
+                                    Tooltip: ="Explain the time and cost overruns and any deliverables that were not achieved"
+                                    Width: =Parent.Width
+                                    X: =0
+                                    Y: =24
+                              - lblClsClosureDescriptionErr:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(196, 30, 58, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =18
+                                    Size: =9
+                                    Text: ="Explain time and cost overruns and deliverables not achieved."
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Visible: =gblShowErrors && IsBlank(gblPEF.ClosureDescription)
+                                    Width: =Parent.Width
+                                    X: =0
+                                    Y: =148
+                        - conClsFldRevisionDate:
+                            Control: GroupContainer@1.5.0
+                            Variant: ManualLayout
+                            Properties:
+                              BorderStyle: =BorderStyle.None
+                              DropShadow: =DropShadow.None
+                              Height: =64
+                              Width: =(Parent.Width - 64) / 3
+                              X: =16 + 2 * ((Parent.Width - 64) / 3 + 16)
+                              Y: =72
+                            Children:
+                              - lblClsRevisionDateLbl:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(96, 94, 92, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =20
+                                    Size: =10
+                                    Text: ="Revision date"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width
+                                    X: =0
+                                    Y: =0
+                              - lblClsRevisionDate:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Fill: =RGBA(249, 250, 251, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =36
+                                    PaddingLeft: =8
+                                    Size: =11
+                                    Text: =Text(gblPEF.Modified, "dd mmm yyyy")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width
+                                    X: =0
+                                    Y: =24
+                        - conClsFldFinalRevision:
+                            Control: GroupContainer@1.5.0
+                            Variant: ManualLayout
+                            Properties:
+                              BorderStyle: =BorderStyle.None
+                              DropShadow: =DropShadow.None
+                              Height: =64
+                              Width: =(Parent.Width - 64) / 3
+                              X: =16 + 2 * ((Parent.Width - 64) / 3 + 16)
+                              Y: =144
+                            Children:
+                              - lblClsFinalRevisionLbl:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(96, 94, 92, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =20
+                                    Size: =10
+                                    Text: ="Final plan"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width
+                                    X: =0
+                                    Y: =0
+                              - lblClsFinalRevision:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Fill: =RGBA(249, 250, 251, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =36
+                                    PaddingLeft: =8
+                                    Size: =11
+                                    Text: =If(gblPEF.RevisionNo = 0, "Original plan (never revised)", "Revision " & gblPEF.RevisionNo & " of the plan")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width
+                                    X: =0
+                                    Y: =24
+                  - conClsSecActuals:
+                      Control: GroupContainer@1.5.0
+                      Variant: ManualLayout
+                      Properties:
+                        BorderStyle: =BorderStyle.None
+                        DropShadow: =DropShadow.Light
+                        Fill: =RGBA(255, 255, 255, 1)
+                        Height: =720
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        Width: =Parent.Width - 48
+                        X: =24
+                        Y: =If(gblPEF.Close, 360, 448)
+                      Children:
+                        - lblClsActualsTitle:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =RGBA(16, 42, 67, 1)
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =24
+                              Size: =13
+                              Text: ="Plan vs actuals"
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =12
+                        - lblClsActualsHint:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =RGBA(96, 94, 92, 1)
+                              Font: =Font.'Segoe UI'
+                              Height: =18
+                              Size: =9
+                              Text: ="The original plan, the final approved plan and the actual figures at closure. Increase = actual minus plan."
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =36
+                        - recClsActualsLine:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              Fill: =RGBA(229, 231, 235, 1)
+                              Height: =1
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =60
+                        - conClsActHeader:
+                            Control: GroupContainer@1.5.0
+                            Variant: ManualLayout
+                            Properties:
+                              BorderStyle: =BorderStyle.None
+                              DropShadow: =DropShadow.None
+                              Fill: =RGBA(229, 241, 250, 1)
+                              Height: =52
+                              RadiusBottomLeft: =4
+                              RadiusBottomRight: =4
+                              RadiusTopLeft: =4
+                              RadiusTopRight: =4
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =72
+                            Children:
+                              - lblClsActHdrItem:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Left
+                                    Color: =RGBA(16, 42, 67, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =20
+                                    PaddingLeft: =12
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: ="Item"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.17
+                                    X: =Parent.Width * 0
+                                    Y: =6
+                              - lblClsActHdrOrig:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(16, 42, 67, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =20
+                                    PaddingLeft: =12
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: ="Original plan"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.15
+                                    X: =Parent.Width * 0.17
+                                    Y: =6
+                              - lblClsActHdrOrigSub:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(96, 94, 92, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =18
+                                    PaddingLeft: =12
+                                    PaddingRight: =12
+                                    Size: =9
+                                    Text: |-
+                                      =With({o: LookUp(colRevisions, Rev = 0)}, If(gblPEF.RevisionNo = 0, "Not revised, same as final", IsBlank(o), "No snapshot, same as final", "Rev 0, " & Text(o.RevDate, "dd mmm yyyy")))
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.15
+                                    X: =Parent.Width * 0.17
+                                    Y: =26
+                              - lblClsActHdrFinal:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(16, 42, 67, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =20
+                                    PaddingLeft: =12
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: ="Final plan"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.15
+                                    X: =Parent.Width * 0.32
+                                    Y: =6
+                              - lblClsActHdrFinalSub:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(96, 94, 92, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =18
+                                    PaddingLeft: =12
+                                    PaddingRight: =12
+                                    Size: =9
+                                    Text: ="Rev " & gblPEF.RevisionNo & ", " & Text(gblPEF.Modified, "dd mmm yyyy")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.15
+                                    X: =Parent.Width * 0.32
+                                    Y: =26
+                              - lblClsActHdrAct:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Left
+                                    Color: =RGBA(16, 42, 67, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =20
+                                    PaddingLeft: =12
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: ="Actuals"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.17
+                                    X: =Parent.Width * 0.47
+                                    Y: =6
+                              - lblClsActHdrActSub:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Left
+                                    Color: =RGBA(96, 94, 92, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =18
+                                    PaddingLeft: =12
+                                    PaddingRight: =12
+                                    Size: =9
+                                    Text: ="Captured at closure"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.17
+                                    X: =Parent.Width * 0.47
+                                    Y: =26
+                              - lblClsActHdrOva:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(16, 42, 67, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =20
+                                    PaddingLeft: =12
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: ="Original plan vs actuals"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.18
+                                    X: =Parent.Width * 0.64
+                                    Y: =6
+                              - lblClsActHdrOvaSub:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(96, 94, 92, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =18
+                                    PaddingLeft: =12
+                                    PaddingRight: =12
+                                    Size: =9
+                                    Text: ="Increase"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.18
+                                    X: =Parent.Width * 0.64
+                                    Y: =26
+                              - lblClsActHdrFva:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(16, 42, 67, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =20
+                                    PaddingLeft: =12
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: ="Final plan vs actuals"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.18
+                                    X: =Parent.Width * 0.82
+                                    Y: =6
+                              - lblClsActHdrFvaSub:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(96, 94, 92, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =18
+                                    PaddingLeft: =12
+                                    PaddingRight: =12
+                                    Size: =9
+                                    Text: ="Increase"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.18
+                                    X: =Parent.Width * 0.82
+                                    Y: =26
+                        - conClsActRowClientPrice:
+                            Control: GroupContainer@1.5.0
+                            Variant: ManualLayout
+                            Properties:
+                              BorderStyle: =BorderStyle.None
+                              DropShadow: =DropShadow.None
+                              Height: =44
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =124
+                            Children:
+                              - lblClsActClientPriceItem:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingLeft: =12
+                                    Size: =11
+                                    Text: ="Client price *"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.17
+                                    X: =Parent.Width * 0
+                                    Y: =0
+                              - lblClsActClientPriceOrig:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =11
+                                    Text: ="R " & Text(Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).ClientPrice), gblTotals.ClientPrice), "#,##0.00")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.15
+                                    X: =Parent.Width * 0.17
+                                    Y: =0
+                              - lblClsActClientPriceFinal:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =11
+                                    Text: ="R " & Text(gblTotals.ClientPrice, "#,##0.00")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.15
+                                    X: =Parent.Width * 0.32
+                                    Y: =0
+                              - txtClsActClientPrice:
+                                  Control: Classic/TextInput@2.3.2
+                                  Properties:
+                                    BorderColor: =If(gblShowErrors && !(gblActuals.ClientPrice > 0), RGBA(196, 30, 58, 1), RGBA(200, 205, 214, 1))
+                                    BorderThickness: =1
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Default: =If(gblActuals.ClientPrice = 0, "", Text(gblActuals.ClientPrice))
+                                    DisplayMode: =gblEditMode
+                                    Fill: =RGBA(255, 255, 255, 1)
+                                    FocusedBorderColor: =RGBA(0, 94, 162, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Format: =TextFormat.Number
+                                    Height: =32
+                                    HintText: =If(gblEditMode = DisplayMode.Edit, "Enter client price", "Not captured")
+                                    HoverBorderColor: =RGBA(0, 94, 162, 1)
+                                    OnChange: |-
+                                      =Set(gblActuals, Patch(gblActuals, {ClientPrice: Coalesce(Value(Self.Text), 0)}))
+                                    PaddingLeft: =8
+                                    RadiusBottomLeft: =4
+                                    RadiusBottomRight: =4
+                                    RadiusTopLeft: =4
+                                    RadiusTopRight: =4
+                                    Size: =11
+                                    Tooltip: ="Actual client price at closure"
+                                    Visible: =gblPEF.Close
+                                    Width: =Parent.Width * 0.17 - 16
+                                    X: =Parent.Width * 0.47 + 8
+                                    Y: =6
+                              - lblClsActClientPricePending:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(96, 94, 92, 1)
+                                    Fill: =RGBA(249, 250, 251, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =32
+                                    PaddingLeft: =8
+                                    Size: =10
+                                    Text: ="Not captured yet"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Visible: =!gblPEF.Close
+                                    Width: =Parent.Width * 0.17 - 16
+                                    X: =Parent.Width * 0.47 + 8
+                                    Y: =6
+                              - lblClsActClientPriceOva:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: |-
+                                      =If(gblPEF.Close && (gblActuals.ClientPrice > 0), With({p: Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).ClientPrice), gblTotals.ClientPrice), a: gblActuals.ClientPrice}, With({d: Round(a - p, 2)}, If(d > 0, RGBA(16, 124, 16, 1), d < 0, RGBA(196, 30, 58, 1), RGBA(96, 94, 92, 1)))), RGBA(96, 94, 92, 1))
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: |-
+                                      =If(gblPEF.Close && (gblActuals.ClientPrice > 0), With({p: Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).ClientPrice), gblTotals.ClientPrice), a: gblActuals.ClientPrice}, With({d: Round(a - p, 2)}, If(d = 0, "On plan", If(d > 0, "+R ", "-R ") & Text(Abs(d), "#,##0.00") & If(p = 0, "", "  (" & If(d > 0, "+", "-") & Text(Abs(d) / Abs(p), "0.00%") & ")")))), "—")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.18
+                                    X: =Parent.Width * 0.64
+                                    Y: =0
+                              - lblClsActClientPriceFva:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: |-
+                                      =If(gblPEF.Close && (gblActuals.ClientPrice > 0), With({p: gblTotals.ClientPrice, a: gblActuals.ClientPrice}, With({d: Round(a - p, 2)}, If(d > 0, RGBA(16, 124, 16, 1), d < 0, RGBA(196, 30, 58, 1), RGBA(96, 94, 92, 1)))), RGBA(96, 94, 92, 1))
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: |-
+                                      =If(gblPEF.Close && (gblActuals.ClientPrice > 0), With({p: gblTotals.ClientPrice, a: gblActuals.ClientPrice}, With({d: Round(a - p, 2)}, If(d = 0, "On plan", If(d > 0, "+R ", "-R ") & Text(Abs(d), "#,##0.00") & If(p = 0, "", "  (" & If(d > 0, "+", "-") & Text(Abs(d) / Abs(p), "0.00%") & ")")))), "—")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.18
+                                    X: =Parent.Width * 0.82
+                                    Y: =0
+                              - recClsActClientPriceLine:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    Fill: =RGBA(229, 231, 235, 1)
+                                    Height: =1
+                                    Width: =Parent.Width
+                                    X: =0
+                                    Y: =43
+                        - conClsActRowProjectCost:
+                            Control: GroupContainer@1.5.0
+                            Variant: ManualLayout
+                            Properties:
+                              BorderStyle: =BorderStyle.None
+                              DropShadow: =DropShadow.None
+                              Height: =44
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =168
+                            Children:
+                              - lblClsActProjectCostItem:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingLeft: =12
+                                    Size: =11
+                                    Text: ="Project cost *"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.17
+                                    X: =Parent.Width * 0
+                                    Y: =0
+                              - lblClsActProjectCostOrig:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =11
+                                    Text: ="R " & Text(Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).ProjectCost), gblTotals.ProjectCost), "#,##0.00")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.15
+                                    X: =Parent.Width * 0.17
+                                    Y: =0
+                              - lblClsActProjectCostFinal:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =11
+                                    Text: ="R " & Text(gblTotals.ProjectCost, "#,##0.00")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.15
+                                    X: =Parent.Width * 0.32
+                                    Y: =0
+                              - txtClsActProjectCost:
+                                  Control: Classic/TextInput@2.3.2
+                                  Properties:
+                                    BorderColor: =If(gblShowErrors && !(gblActuals.ProjectCost > 0), RGBA(196, 30, 58, 1), RGBA(200, 205, 214, 1))
+                                    BorderThickness: =1
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Default: =If(gblActuals.ProjectCost = 0, "", Text(gblActuals.ProjectCost))
+                                    DisplayMode: =gblEditMode
+                                    Fill: =RGBA(255, 255, 255, 1)
+                                    FocusedBorderColor: =RGBA(0, 94, 162, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Format: =TextFormat.Number
+                                    Height: =32
+                                    HintText: =If(gblEditMode = DisplayMode.Edit, "Enter project costs", "Not captured")
+                                    HoverBorderColor: =RGBA(0, 94, 162, 1)
+                                    OnChange: |-
+                                      =Set(gblActuals, Patch(gblActuals, {ProjectCost: Coalesce(Value(Self.Text), 0)}))
+                                    PaddingLeft: =8
+                                    RadiusBottomLeft: =4
+                                    RadiusBottomRight: =4
+                                    RadiusTopLeft: =4
+                                    RadiusTopRight: =4
+                                    Size: =11
+                                    Tooltip: ="Actual project cost at closure"
+                                    Visible: =gblPEF.Close
+                                    Width: =Parent.Width * 0.17 - 16
+                                    X: =Parent.Width * 0.47 + 8
+                                    Y: =6
+                              - lblClsActProjectCostPending:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(96, 94, 92, 1)
+                                    Fill: =RGBA(249, 250, 251, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =32
+                                    PaddingLeft: =8
+                                    Size: =10
+                                    Text: ="Not captured yet"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Visible: =!gblPEF.Close
+                                    Width: =Parent.Width * 0.17 - 16
+                                    X: =Parent.Width * 0.47 + 8
+                                    Y: =6
+                              - lblClsActProjectCostOva:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: |-
+                                      =If(gblPEF.Close && (gblActuals.ProjectCost > 0), With({p: Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).ProjectCost), gblTotals.ProjectCost), a: gblActuals.ProjectCost}, With({d: Round(a - p, 2)}, If(d > 0, RGBA(196, 30, 58, 1), d < 0, RGBA(16, 124, 16, 1), RGBA(96, 94, 92, 1)))), RGBA(96, 94, 92, 1))
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: |-
+                                      =If(gblPEF.Close && (gblActuals.ProjectCost > 0), With({p: Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).ProjectCost), gblTotals.ProjectCost), a: gblActuals.ProjectCost}, With({d: Round(a - p, 2)}, If(d = 0, "On plan", If(d > 0, "+R ", "-R ") & Text(Abs(d), "#,##0.00") & If(p = 0, "", "  (" & If(d > 0, "+", "-") & Text(Abs(d) / Abs(p), "0.00%") & ")")))), "—")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.18
+                                    X: =Parent.Width * 0.64
+                                    Y: =0
+                              - lblClsActProjectCostFva:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: |-
+                                      =If(gblPEF.Close && (gblActuals.ProjectCost > 0), With({p: gblTotals.ProjectCost, a: gblActuals.ProjectCost}, With({d: Round(a - p, 2)}, If(d > 0, RGBA(196, 30, 58, 1), d < 0, RGBA(16, 124, 16, 1), RGBA(96, 94, 92, 1)))), RGBA(96, 94, 92, 1))
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: |-
+                                      =If(gblPEF.Close && (gblActuals.ProjectCost > 0), With({p: gblTotals.ProjectCost, a: gblActuals.ProjectCost}, With({d: Round(a - p, 2)}, If(d = 0, "On plan", If(d > 0, "+R ", "-R ") & Text(Abs(d), "#,##0.00") & If(p = 0, "", "  (" & If(d > 0, "+", "-") & Text(Abs(d) / Abs(p), "0.00%") & ")")))), "—")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.18
+                                    X: =Parent.Width * 0.82
+                                    Y: =0
+                              - recClsActProjectCostLine:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    Fill: =RGBA(229, 231, 235, 1)
+                                    Height: =1
+                                    Width: =Parent.Width
+                                    X: =0
+                                    Y: =43
+                        - conClsActRowLabour:
+                            Control: GroupContainer@1.5.0
+                            Variant: ManualLayout
+                            Properties:
+                              BorderStyle: =BorderStyle.None
+                              DropShadow: =DropShadow.None
+                              Height: =44
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =212
+                            Children:
+                              - lblClsActLabourItem:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingLeft: =12
+                                    Size: =11
+                                    Text: ="Labour *"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.17
+                                    X: =Parent.Width * 0
+                                    Y: =0
+                              - lblClsActLabourOrig:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =11
+                                    Text: ="R " & Text(Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).Labour), gblTotals.Labour), "#,##0.00")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.15
+                                    X: =Parent.Width * 0.17
+                                    Y: =0
+                              - lblClsActLabourFinal:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =11
+                                    Text: ="R " & Text(gblTotals.Labour, "#,##0.00")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.15
+                                    X: =Parent.Width * 0.32
+                                    Y: =0
+                              - txtClsActLabour:
+                                  Control: Classic/TextInput@2.3.2
+                                  Properties:
+                                    BorderColor: =If(gblShowErrors && !(gblActuals.Labour > 0), RGBA(196, 30, 58, 1), RGBA(200, 205, 214, 1))
+                                    BorderThickness: =1
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Default: =If(gblActuals.Labour = 0, "", Text(gblActuals.Labour))
+                                    DisplayMode: =gblEditMode
+                                    Fill: =RGBA(255, 255, 255, 1)
+                                    FocusedBorderColor: =RGBA(0, 94, 162, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Format: =TextFormat.Number
+                                    Height: =32
+                                    HintText: =If(gblEditMode = DisplayMode.Edit, "Enter labour costs", "Not captured")
+                                    HoverBorderColor: =RGBA(0, 94, 162, 1)
+                                    OnChange: |-
+                                      =Set(gblActuals, Patch(gblActuals, {Labour: Coalesce(Value(Self.Text), 0)}))
+                                    PaddingLeft: =8
+                                    RadiusBottomLeft: =4
+                                    RadiusBottomRight: =4
+                                    RadiusTopLeft: =4
+                                    RadiusTopRight: =4
+                                    Size: =11
+                                    Tooltip: ="Actual labour at closure"
+                                    Visible: =gblPEF.Close
+                                    Width: =Parent.Width * 0.17 - 16
+                                    X: =Parent.Width * 0.47 + 8
+                                    Y: =6
+                              - lblClsActLabourPending:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(96, 94, 92, 1)
+                                    Fill: =RGBA(249, 250, 251, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =32
+                                    PaddingLeft: =8
+                                    Size: =10
+                                    Text: ="Not captured yet"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Visible: =!gblPEF.Close
+                                    Width: =Parent.Width * 0.17 - 16
+                                    X: =Parent.Width * 0.47 + 8
+                                    Y: =6
+                              - lblClsActLabourOva:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: |-
+                                      =If(gblPEF.Close && (gblActuals.Labour > 0), With({p: Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).Labour), gblTotals.Labour), a: gblActuals.Labour}, With({d: Round(a - p, 2)}, If(d > 0, RGBA(196, 30, 58, 1), d < 0, RGBA(16, 124, 16, 1), RGBA(96, 94, 92, 1)))), RGBA(96, 94, 92, 1))
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: |-
+                                      =If(gblPEF.Close && (gblActuals.Labour > 0), With({p: Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).Labour), gblTotals.Labour), a: gblActuals.Labour}, With({d: Round(a - p, 2)}, If(d = 0, "On plan", If(d > 0, "+R ", "-R ") & Text(Abs(d), "#,##0.00") & If(p = 0, "", "  (" & If(d > 0, "+", "-") & Text(Abs(d) / Abs(p), "0.00%") & ")")))), "—")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.18
+                                    X: =Parent.Width * 0.64
+                                    Y: =0
+                              - lblClsActLabourFva:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: |-
+                                      =If(gblPEF.Close && (gblActuals.Labour > 0), With({p: gblTotals.Labour, a: gblActuals.Labour}, With({d: Round(a - p, 2)}, If(d > 0, RGBA(196, 30, 58, 1), d < 0, RGBA(16, 124, 16, 1), RGBA(96, 94, 92, 1)))), RGBA(96, 94, 92, 1))
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: |-
+                                      =If(gblPEF.Close && (gblActuals.Labour > 0), With({p: gblTotals.Labour, a: gblActuals.Labour}, With({d: Round(a - p, 2)}, If(d = 0, "On plan", If(d > 0, "+R ", "-R ") & Text(Abs(d), "#,##0.00") & If(p = 0, "", "  (" & If(d > 0, "+", "-") & Text(Abs(d) / Abs(p), "0.00%") & ")")))), "—")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.18
+                                    X: =Parent.Width * 0.82
+                                    Y: =0
+                              - recClsActLabourLine:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    Fill: =RGBA(229, 231, 235, 1)
+                                    Height: =1
+                                    Width: =Parent.Width
+                                    X: =0
+                                    Y: =43
+                        - conClsActRowOPEX:
+                            Control: GroupContainer@1.5.0
+                            Variant: ManualLayout
+                            Properties:
+                              BorderStyle: =BorderStyle.None
+                              DropShadow: =DropShadow.None
+                              Height: =44
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =256
+                            Children:
+                              - lblClsActOPEXItem:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingLeft: =12
+                                    Size: =11
+                                    Text: ="Running (OPEX)"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.17
+                                    X: =Parent.Width * 0
+                                    Y: =0
+                              - lblClsActOPEXOrig:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =11
+                                    Text: ="R " & Text(Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).OPEX), gblTotals.OPEX), "#,##0.00")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.15
+                                    X: =Parent.Width * 0.17
+                                    Y: =0
+                              - lblClsActOPEXFinal:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =11
+                                    Text: ="R " & Text(gblTotals.OPEX, "#,##0.00")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.15
+                                    X: =Parent.Width * 0.32
+                                    Y: =0
+                              - txtClsActOPEX:
+                                  Control: Classic/TextInput@2.3.2
+                                  Properties:
+                                    BorderColor: =RGBA(200, 205, 214, 1)
+                                    BorderThickness: =1
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Default: =If(gblActuals.OPEX = 0, "", Text(gblActuals.OPEX))
+                                    DisplayMode: =gblEditMode
+                                    Fill: =RGBA(255, 255, 255, 1)
+                                    FocusedBorderColor: =RGBA(0, 94, 162, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Format: =TextFormat.Number
+                                    Height: =32
+                                    HintText: =If(gblEditMode = DisplayMode.Edit, "Enter running costs", "Not captured")
+                                    HoverBorderColor: =RGBA(0, 94, 162, 1)
+                                    OnChange: |-
+                                      =Set(gblActuals, Patch(gblActuals, {OPEX: Coalesce(Value(Self.Text), 0)}))
+                                    PaddingLeft: =8
+                                    RadiusBottomLeft: =4
+                                    RadiusBottomRight: =4
+                                    RadiusTopLeft: =4
+                                    RadiusTopRight: =4
+                                    Size: =11
+                                    Tooltip: ="Actual running (opex) at closure"
+                                    Visible: =gblPEF.Close
+                                    Width: =Parent.Width * 0.17 - 16
+                                    X: =Parent.Width * 0.47 + 8
+                                    Y: =6
+                              - lblClsActOPEXPending:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(96, 94, 92, 1)
+                                    Fill: =RGBA(249, 250, 251, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =32
+                                    PaddingLeft: =8
+                                    Size: =10
+                                    Text: ="Not captured yet"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Visible: =!gblPEF.Close
+                                    Width: =Parent.Width * 0.17 - 16
+                                    X: =Parent.Width * 0.47 + 8
+                                    Y: =6
+                              - lblClsActOPEXOva:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: |-
+                                      =If(gblPEF.Close && (gblActuals.ProjectCost > 0), With({p: Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).OPEX), gblTotals.OPEX), a: gblActuals.OPEX}, With({d: Round(a - p, 2)}, If(d > 0, RGBA(196, 30, 58, 1), d < 0, RGBA(16, 124, 16, 1), RGBA(96, 94, 92, 1)))), RGBA(96, 94, 92, 1))
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: |-
+                                      =If(gblPEF.Close && (gblActuals.ProjectCost > 0), With({p: Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).OPEX), gblTotals.OPEX), a: gblActuals.OPEX}, With({d: Round(a - p, 2)}, If(d = 0, "On plan", If(d > 0, "+R ", "-R ") & Text(Abs(d), "#,##0.00") & If(p = 0, "", "  (" & If(d > 0, "+", "-") & Text(Abs(d) / Abs(p), "0.00%") & ")")))), "—")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.18
+                                    X: =Parent.Width * 0.64
+                                    Y: =0
+                              - lblClsActOPEXFva:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: |-
+                                      =If(gblPEF.Close && (gblActuals.ProjectCost > 0), With({p: gblTotals.OPEX, a: gblActuals.OPEX}, With({d: Round(a - p, 2)}, If(d > 0, RGBA(196, 30, 58, 1), d < 0, RGBA(16, 124, 16, 1), RGBA(96, 94, 92, 1)))), RGBA(96, 94, 92, 1))
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: |-
+                                      =If(gblPEF.Close && (gblActuals.ProjectCost > 0), With({p: gblTotals.OPEX, a: gblActuals.OPEX}, With({d: Round(a - p, 2)}, If(d = 0, "On plan", If(d > 0, "+R ", "-R ") & Text(Abs(d), "#,##0.00") & If(p = 0, "", "  (" & If(d > 0, "+", "-") & Text(Abs(d) / Abs(p), "0.00%") & ")")))), "—")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.18
+                                    X: =Parent.Width * 0.82
+                                    Y: =0
+                              - recClsActOPEXLine:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    Fill: =RGBA(229, 231, 235, 1)
+                                    Height: =1
+                                    Width: =Parent.Width
+                                    X: =0
+                                    Y: =43
+                        - conClsActRowContingency:
+                            Control: GroupContainer@1.5.0
+                            Variant: ManualLayout
+                            Properties:
+                              BorderStyle: =BorderStyle.None
+                              DropShadow: =DropShadow.None
+                              Height: =44
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =300
+                            Children:
+                              - lblClsActContingencyItem:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingLeft: =12
+                                    Size: =11
+                                    Text: ="Contingency"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.17
+                                    X: =Parent.Width * 0
+                                    Y: =0
+                              - lblClsActContingencyOrig:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =11
+                                    Text: ="R " & Text(Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).Contingency), gblTotals.Contingency), "#,##0.00")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.15
+                                    X: =Parent.Width * 0.17
+                                    Y: =0
+                              - lblClsActContingencyFinal:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =11
+                                    Text: ="R " & Text(gblTotals.Contingency, "#,##0.00")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.15
+                                    X: =Parent.Width * 0.32
+                                    Y: =0
+                              - txtClsActContingency:
+                                  Control: Classic/TextInput@2.3.2
+                                  Properties:
+                                    BorderColor: =RGBA(200, 205, 214, 1)
+                                    BorderThickness: =1
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Default: =If(gblActuals.Contingency = 0, "", Text(gblActuals.Contingency))
+                                    DisplayMode: =gblEditMode
+                                    Fill: =RGBA(255, 255, 255, 1)
+                                    FocusedBorderColor: =RGBA(0, 94, 162, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Format: =TextFormat.Number
+                                    Height: =32
+                                    HintText: =If(gblEditMode = DisplayMode.Edit, "Enter contingency costs", "Not captured")
+                                    HoverBorderColor: =RGBA(0, 94, 162, 1)
+                                    OnChange: |-
+                                      =Set(gblActuals, Patch(gblActuals, {Contingency: Coalesce(Value(Self.Text), 0)}))
+                                    PaddingLeft: =8
+                                    RadiusBottomLeft: =4
+                                    RadiusBottomRight: =4
+                                    RadiusTopLeft: =4
+                                    RadiusTopRight: =4
+                                    Size: =11
+                                    Tooltip: ="Actual contingency at closure"
+                                    Visible: =gblPEF.Close
+                                    Width: =Parent.Width * 0.17 - 16
+                                    X: =Parent.Width * 0.47 + 8
+                                    Y: =6
+                              - lblClsActContingencyPending:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(96, 94, 92, 1)
+                                    Fill: =RGBA(249, 250, 251, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =32
+                                    PaddingLeft: =8
+                                    Size: =10
+                                    Text: ="Not captured yet"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Visible: =!gblPEF.Close
+                                    Width: =Parent.Width * 0.17 - 16
+                                    X: =Parent.Width * 0.47 + 8
+                                    Y: =6
+                              - lblClsActContingencyOva:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: |-
+                                      =If(gblPEF.Close && (gblActuals.ProjectCost > 0), With({p: Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).Contingency), gblTotals.Contingency), a: gblActuals.Contingency}, With({d: Round(a - p, 2)}, If(d > 0, RGBA(196, 30, 58, 1), d < 0, RGBA(16, 124, 16, 1), RGBA(96, 94, 92, 1)))), RGBA(96, 94, 92, 1))
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: |-
+                                      =If(gblPEF.Close && (gblActuals.ProjectCost > 0), With({p: Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).Contingency), gblTotals.Contingency), a: gblActuals.Contingency}, With({d: Round(a - p, 2)}, If(d = 0, "On plan", If(d > 0, "+R ", "-R ") & Text(Abs(d), "#,##0.00") & If(p = 0, "", "  (" & If(d > 0, "+", "-") & Text(Abs(d) / Abs(p), "0.00%") & ")")))), "—")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.18
+                                    X: =Parent.Width * 0.64
+                                    Y: =0
+                              - lblClsActContingencyFva:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: |-
+                                      =If(gblPEF.Close && (gblActuals.ProjectCost > 0), With({p: gblTotals.Contingency, a: gblActuals.Contingency}, With({d: Round(a - p, 2)}, If(d > 0, RGBA(196, 30, 58, 1), d < 0, RGBA(16, 124, 16, 1), RGBA(96, 94, 92, 1)))), RGBA(96, 94, 92, 1))
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: |-
+                                      =If(gblPEF.Close && (gblActuals.ProjectCost > 0), With({p: gblTotals.Contingency, a: gblActuals.Contingency}, With({d: Round(a - p, 2)}, If(d = 0, "On plan", If(d > 0, "+R ", "-R ") & Text(Abs(d), "#,##0.00") & If(p = 0, "", "  (" & If(d > 0, "+", "-") & Text(Abs(d) / Abs(p), "0.00%") & ")")))), "—")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.18
+                                    X: =Parent.Width * 0.82
+                                    Y: =0
+                              - recClsActContingencyLine:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    Fill: =RGBA(229, 231, 235, 1)
+                                    Height: =1
+                                    Width: =Parent.Width
+                                    X: =0
+                                    Y: =43
+                        - conClsActRowWarranty:
+                            Control: GroupContainer@1.5.0
+                            Variant: ManualLayout
+                            Properties:
+                              BorderStyle: =BorderStyle.None
+                              DropShadow: =DropShadow.None
+                              Height: =44
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =344
+                            Children:
+                              - lblClsActWarrantyItem:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingLeft: =12
+                                    Size: =11
+                                    Text: ="Warranty"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.17
+                                    X: =Parent.Width * 0
+                                    Y: =0
+                              - lblClsActWarrantyOrig:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =11
+                                    Text: ="R " & Text(Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).Warranty), gblTotals.Warranty), "#,##0.00")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.15
+                                    X: =Parent.Width * 0.17
+                                    Y: =0
+                              - lblClsActWarrantyFinal:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =11
+                                    Text: ="R " & Text(gblTotals.Warranty, "#,##0.00")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.15
+                                    X: =Parent.Width * 0.32
+                                    Y: =0
+                              - txtClsActWarranty:
+                                  Control: Classic/TextInput@2.3.2
+                                  Properties:
+                                    BorderColor: =RGBA(200, 205, 214, 1)
+                                    BorderThickness: =1
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Default: =If(gblActuals.Warranty = 0, "", Text(gblActuals.Warranty))
+                                    DisplayMode: =gblEditMode
+                                    Fill: =RGBA(255, 255, 255, 1)
+                                    FocusedBorderColor: =RGBA(0, 94, 162, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Format: =TextFormat.Number
+                                    Height: =32
+                                    HintText: =If(gblEditMode = DisplayMode.Edit, "Enter warranty costs", "Not captured")
+                                    HoverBorderColor: =RGBA(0, 94, 162, 1)
+                                    OnChange: |-
+                                      =Set(gblActuals, Patch(gblActuals, {Warranty: Coalesce(Value(Self.Text), 0)}))
+                                    PaddingLeft: =8
+                                    RadiusBottomLeft: =4
+                                    RadiusBottomRight: =4
+                                    RadiusTopLeft: =4
+                                    RadiusTopRight: =4
+                                    Size: =11
+                                    Tooltip: ="Actual warranty at closure"
+                                    Visible: =gblPEF.Close
+                                    Width: =Parent.Width * 0.17 - 16
+                                    X: =Parent.Width * 0.47 + 8
+                                    Y: =6
+                              - lblClsActWarrantyPending:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(96, 94, 92, 1)
+                                    Fill: =RGBA(249, 250, 251, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =32
+                                    PaddingLeft: =8
+                                    Size: =10
+                                    Text: ="Not captured yet"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Visible: =!gblPEF.Close
+                                    Width: =Parent.Width * 0.17 - 16
+                                    X: =Parent.Width * 0.47 + 8
+                                    Y: =6
+                              - lblClsActWarrantyOva:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: |-
+                                      =If(gblPEF.Close && (gblActuals.ProjectCost > 0), With({p: Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).Warranty), gblTotals.Warranty), a: gblActuals.Warranty}, With({d: Round(a - p, 2)}, If(d > 0, RGBA(196, 30, 58, 1), d < 0, RGBA(16, 124, 16, 1), RGBA(96, 94, 92, 1)))), RGBA(96, 94, 92, 1))
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: |-
+                                      =If(gblPEF.Close && (gblActuals.ProjectCost > 0), With({p: Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).Warranty), gblTotals.Warranty), a: gblActuals.Warranty}, With({d: Round(a - p, 2)}, If(d = 0, "On plan", If(d > 0, "+R ", "-R ") & Text(Abs(d), "#,##0.00") & If(p = 0, "", "  (" & If(d > 0, "+", "-") & Text(Abs(d) / Abs(p), "0.00%") & ")")))), "—")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.18
+                                    X: =Parent.Width * 0.64
+                                    Y: =0
+                              - lblClsActWarrantyFva:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: |-
+                                      =If(gblPEF.Close && (gblActuals.ProjectCost > 0), With({p: gblTotals.Warranty, a: gblActuals.Warranty}, With({d: Round(a - p, 2)}, If(d > 0, RGBA(196, 30, 58, 1), d < 0, RGBA(16, 124, 16, 1), RGBA(96, 94, 92, 1)))), RGBA(96, 94, 92, 1))
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: |-
+                                      =If(gblPEF.Close && (gblActuals.ProjectCost > 0), With({p: gblTotals.Warranty, a: gblActuals.Warranty}, With({d: Round(a - p, 2)}, If(d = 0, "On plan", If(d > 0, "+R ", "-R ") & Text(Abs(d), "#,##0.00") & If(p = 0, "", "  (" & If(d > 0, "+", "-") & Text(Abs(d) / Abs(p), "0.00%") & ")")))), "—")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.18
+                                    X: =Parent.Width * 0.82
+                                    Y: =0
+                              - recClsActWarrantyLine:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    Fill: =RGBA(229, 231, 235, 1)
+                                    Height: =1
+                                    Width: =Parent.Width
+                                    X: =0
+                                    Y: =43
+                        - conClsActRowServiceSBUs:
+                            Control: GroupContainer@1.5.0
+                            Variant: ManualLayout
+                            Properties:
+                              BorderStyle: =BorderStyle.None
+                              DropShadow: =DropShadow.None
+                              Height: =44
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =388
+                            Children:
+                              - lblClsActServiceSBUsItem:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingLeft: =12
+                                    Size: =11
+                                    Text: ="Service division (SBUs)"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.17
+                                    X: =Parent.Width * 0
+                                    Y: =0
+                              - lblClsActServiceSBUsOrig:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =11
+                                    Text: ="R " & Text(Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).ServiceSBUs), gblTotals.ServiceCosts), "#,##0.00")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.15
+                                    X: =Parent.Width * 0.17
+                                    Y: =0
+                              - lblClsActServiceSBUsFinal:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =11
+                                    Text: ="R " & Text(gblTotals.ServiceCosts, "#,##0.00")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.15
+                                    X: =Parent.Width * 0.32
+                                    Y: =0
+                              - txtClsActServiceSBUs:
+                                  Control: Classic/TextInput@2.3.2
+                                  Properties:
+                                    BorderColor: =RGBA(200, 205, 214, 1)
+                                    BorderThickness: =1
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Default: =If(gblActuals.ServiceSBUs = 0, "", Text(gblActuals.ServiceSBUs))
+                                    DisplayMode: =gblEditMode
+                                    Fill: =RGBA(255, 255, 255, 1)
+                                    FocusedBorderColor: =RGBA(0, 94, 162, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Format: =TextFormat.Number
+                                    Height: =32
+                                    HintText: =If(gblEditMode = DisplayMode.Edit, "Enter services costs", "Not captured")
+                                    HoverBorderColor: =RGBA(0, 94, 162, 1)
+                                    OnChange: |-
+                                      =Set(gblActuals, Patch(gblActuals, {ServiceSBUs: Coalesce(Value(Self.Text), 0)}))
+                                    PaddingLeft: =8
+                                    RadiusBottomLeft: =4
+                                    RadiusBottomRight: =4
+                                    RadiusTopLeft: =4
+                                    RadiusTopRight: =4
+                                    Size: =11
+                                    Tooltip: ="Actual service division (sbus) at closure"
+                                    Visible: =gblPEF.Close
+                                    Width: =Parent.Width * 0.17 - 16
+                                    X: =Parent.Width * 0.47 + 8
+                                    Y: =6
+                              - lblClsActServiceSBUsPending:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(96, 94, 92, 1)
+                                    Fill: =RGBA(249, 250, 251, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =32
+                                    PaddingLeft: =8
+                                    Size: =10
+                                    Text: ="Not captured yet"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Visible: =!gblPEF.Close
+                                    Width: =Parent.Width * 0.17 - 16
+                                    X: =Parent.Width * 0.47 + 8
+                                    Y: =6
+                              - lblClsActServiceSBUsOva:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: |-
+                                      =If(gblPEF.Close && (gblActuals.ProjectCost > 0), With({p: Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).ServiceSBUs), gblTotals.ServiceCosts), a: gblActuals.ServiceSBUs}, With({d: Round(a - p, 2)}, If(d > 0, RGBA(196, 30, 58, 1), d < 0, RGBA(16, 124, 16, 1), RGBA(96, 94, 92, 1)))), RGBA(96, 94, 92, 1))
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: |-
+                                      =If(gblPEF.Close && (gblActuals.ProjectCost > 0), With({p: Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).ServiceSBUs), gblTotals.ServiceCosts), a: gblActuals.ServiceSBUs}, With({d: Round(a - p, 2)}, If(d = 0, "On plan", If(d > 0, "+R ", "-R ") & Text(Abs(d), "#,##0.00") & If(p = 0, "", "  (" & If(d > 0, "+", "-") & Text(Abs(d) / Abs(p), "0.00%") & ")")))), "—")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.18
+                                    X: =Parent.Width * 0.64
+                                    Y: =0
+                              - lblClsActServiceSBUsFva:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: |-
+                                      =If(gblPEF.Close && (gblActuals.ProjectCost > 0), With({p: gblTotals.ServiceCosts, a: gblActuals.ServiceSBUs}, With({d: Round(a - p, 2)}, If(d > 0, RGBA(196, 30, 58, 1), d < 0, RGBA(16, 124, 16, 1), RGBA(96, 94, 92, 1)))), RGBA(96, 94, 92, 1))
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: |-
+                                      =If(gblPEF.Close && (gblActuals.ProjectCost > 0), With({p: gblTotals.ServiceCosts, a: gblActuals.ServiceSBUs}, With({d: Round(a - p, 2)}, If(d = 0, "On plan", If(d > 0, "+R ", "-R ") & Text(Abs(d), "#,##0.00") & If(p = 0, "", "  (" & If(d > 0, "+", "-") & Text(Abs(d) / Abs(p), "0.00%") & ")")))), "—")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.18
+                                    X: =Parent.Width * 0.82
+                                    Y: =0
+                              - recClsActServiceSBUsLine:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    Fill: =RGBA(229, 231, 235, 1)
+                                    Height: =1
+                                    Width: =Parent.Width
+                                    X: =0
+                                    Y: =43
+                        - conClsActRowProfit:
+                            Control: GroupContainer@1.5.0
+                            Variant: ManualLayout
+                            Properties:
+                              BorderStyle: =BorderStyle.None
+                              DropShadow: =DropShadow.None
+                              Height: =44
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =432
+                            Children:
+                              - lblClsActProfitItem:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingLeft: =12
+                                    Size: =11
+                                    Text: ="Profit (R)"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.17
+                                    X: =Parent.Width * 0
+                                    Y: =0
+                              - lblClsActProfitOrig:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =11
+                                    Text: ="R " & Text(Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).Profit), gblTotals.Profit), "#,##0.00")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.15
+                                    X: =Parent.Width * 0.17
+                                    Y: =0
+                              - lblClsActProfitFinal:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =11
+                                    Text: ="R " & Text(gblTotals.Profit, "#,##0.00")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.15
+                                    X: =Parent.Width * 0.32
+                                    Y: =0
+                              - lblClsActProfitActual:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =If(gblActuals.ClientPrice > 0 && gblActuals.ProjectCost > 0, RGBA(32, 31, 30, 1), RGBA(96, 94, 92, 1))
+                                    Fill: =RGBA(249, 250, 251, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =32
+                                    PaddingRight: =8
+                                    Size: =11
+                                    Text: =If(gblActuals.ClientPrice > 0 && gblActuals.ProjectCost > 0, "R " & Text(gblActuals.ClientPrice - gblActuals.ProjectCost, "#,##0.00"), "Calculated")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.17 - 16
+                                    X: =Parent.Width * 0.47 + 8
+                                    Y: =6
+                              - lblClsActProfitOva:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: |-
+                                      =If(gblPEF.Close && (gblActuals.ClientPrice > 0 && gblActuals.ProjectCost > 0), With({p: Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).Profit), gblTotals.Profit), a: gblActuals.ClientPrice - gblActuals.ProjectCost}, With({d: Round(a - p, 2)}, If(d > 0, RGBA(16, 124, 16, 1), d < 0, RGBA(196, 30, 58, 1), RGBA(96, 94, 92, 1)))), RGBA(96, 94, 92, 1))
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: |-
+                                      =If(gblPEF.Close && (gblActuals.ClientPrice > 0 && gblActuals.ProjectCost > 0), With({p: Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).Profit), gblTotals.Profit), a: gblActuals.ClientPrice - gblActuals.ProjectCost}, With({d: Round(a - p, 2)}, If(d = 0, "On plan", If(d > 0, "+R ", "-R ") & Text(Abs(d), "#,##0.00") & If(p = 0, "", "  (" & If(d > 0, "+", "-") & Text(Abs(d) / Abs(p), "0.00%") & ")")))), "—")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.18
+                                    X: =Parent.Width * 0.64
+                                    Y: =0
+                              - lblClsActProfitFva:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: |-
+                                      =If(gblPEF.Close && (gblActuals.ClientPrice > 0 && gblActuals.ProjectCost > 0), With({p: gblTotals.Profit, a: gblActuals.ClientPrice - gblActuals.ProjectCost}, With({d: Round(a - p, 2)}, If(d > 0, RGBA(16, 124, 16, 1), d < 0, RGBA(196, 30, 58, 1), RGBA(96, 94, 92, 1)))), RGBA(96, 94, 92, 1))
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: |-
+                                      =If(gblPEF.Close && (gblActuals.ClientPrice > 0 && gblActuals.ProjectCost > 0), With({p: gblTotals.Profit, a: gblActuals.ClientPrice - gblActuals.ProjectCost}, With({d: Round(a - p, 2)}, If(d = 0, "On plan", If(d > 0, "+R ", "-R ") & Text(Abs(d), "#,##0.00") & If(p = 0, "", "  (" & If(d > 0, "+", "-") & Text(Abs(d) / Abs(p), "0.00%") & ")")))), "—")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.18
+                                    X: =Parent.Width * 0.82
+                                    Y: =0
+                              - recClsActProfitLine:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    Fill: =RGBA(229, 231, 235, 1)
+                                    Height: =1
+                                    Width: =Parent.Width
+                                    X: =0
+                                    Y: =43
+                        - conClsActRowProfitPct:
+                            Control: GroupContainer@1.5.0
+                            Variant: ManualLayout
+                            Properties:
+                              BorderStyle: =BorderStyle.None
+                              DropShadow: =DropShadow.None
+                              Height: =44
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =476
+                            Children:
+                              - lblClsActProfitPctItem:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingLeft: =12
+                                    Size: =11
+                                    Text: ="Profit (%)"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.17
+                                    X: =Parent.Width * 0
+                                    Y: =0
+                              - lblClsActProfitPctOrig:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =11
+                                    Text: =Text(Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).ProfitPct), gblTotals.ProfitPct), "0.00%")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.15
+                                    X: =Parent.Width * 0.17
+                                    Y: =0
+                              - lblClsActProfitPctFinal:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =11
+                                    Text: =Text(gblTotals.ProfitPct, "0.00%")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.15
+                                    X: =Parent.Width * 0.32
+                                    Y: =0
+                              - lblClsActProfitPctActual:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =If(gblActuals.ClientPrice > 0 && gblActuals.ProjectCost > 0, RGBA(32, 31, 30, 1), RGBA(96, 94, 92, 1))
+                                    Fill: =RGBA(249, 250, 251, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =32
+                                    PaddingRight: =8
+                                    Size: =11
+                                    Text: =If(gblActuals.ClientPrice > 0 && gblActuals.ProjectCost > 0, Text(If(gblActuals.ProjectCost > 0, gblActuals.ClientPrice / gblActuals.ProjectCost - 1, 0), "0.00%"), "Calculated")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.17 - 16
+                                    X: =Parent.Width * 0.47 + 8
+                                    Y: =6
+                              - lblClsActProfitPctOva:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: |-
+                                      =If(gblPEF.Close && (gblActuals.ClientPrice > 0 && gblActuals.ProjectCost > 0), With({p: Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).ProfitPct), gblTotals.ProfitPct), a: If(gblActuals.ProjectCost > 0, gblActuals.ClientPrice / gblActuals.ProjectCost - 1, 0)}, With({d: Round(a - p, 6)}, If(d > 0, RGBA(16, 124, 16, 1), d < 0, RGBA(196, 30, 58, 1), RGBA(96, 94, 92, 1)))), RGBA(96, 94, 92, 1))
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: |-
+                                      =If(gblPEF.Close && (gblActuals.ClientPrice > 0 && gblActuals.ProjectCost > 0), With({p: Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).ProfitPct), gblTotals.ProfitPct), a: If(gblActuals.ProjectCost > 0, gblActuals.ClientPrice / gblActuals.ProjectCost - 1, 0)}, With({d: Round(a - p, 6)}, If(d = 0, "On plan", If(d > 0, "+", "-") & Text(Abs(d) * 100, "0.00") & " pts"))), "—")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.18
+                                    X: =Parent.Width * 0.64
+                                    Y: =0
+                              - lblClsActProfitPctFva:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: |-
+                                      =If(gblPEF.Close && (gblActuals.ClientPrice > 0 && gblActuals.ProjectCost > 0), With({p: gblTotals.ProfitPct, a: If(gblActuals.ProjectCost > 0, gblActuals.ClientPrice / gblActuals.ProjectCost - 1, 0)}, With({d: Round(a - p, 6)}, If(d > 0, RGBA(16, 124, 16, 1), d < 0, RGBA(196, 30, 58, 1), RGBA(96, 94, 92, 1)))), RGBA(96, 94, 92, 1))
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: |-
+                                      =If(gblPEF.Close && (gblActuals.ClientPrice > 0 && gblActuals.ProjectCost > 0), With({p: gblTotals.ProfitPct, a: If(gblActuals.ProjectCost > 0, gblActuals.ClientPrice / gblActuals.ProjectCost - 1, 0)}, With({d: Round(a - p, 6)}, If(d = 0, "On plan", If(d > 0, "+", "-") & Text(Abs(d) * 100, "0.00") & " pts"))), "—")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.18
+                                    X: =Parent.Width * 0.82
+                                    Y: =0
+                              - recClsActProfitPctLine:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    Fill: =RGBA(229, 231, 235, 1)
+                                    Height: =1
+                                    Width: =Parent.Width
+                                    X: =0
+                                    Y: =43
+                        - conClsActRowExchangeRate:
+                            Control: GroupContainer@1.5.0
+                            Variant: ManualLayout
+                            Properties:
+                              BorderStyle: =BorderStyle.None
+                              DropShadow: =DropShadow.None
+                              Height: =44
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =520
+                            Children:
+                              - lblClsActExchangeRateItem:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingLeft: =12
+                                    Size: =11
+                                    Text: ="Exchange rate *"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.17
+                                    X: =Parent.Width * 0
+                                    Y: =0
+                              - lblClsActExchangeRateOrig:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =11
+                                    Text: =Text(Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).ExchangeRate), gblPEF.ExchangeRate), "0.0000")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.15
+                                    X: =Parent.Width * 0.17
+                                    Y: =0
+                              - lblClsActExchangeRateFinal:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =11
+                                    Text: =Text(gblPEF.ExchangeRate, "0.0000")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.15
+                                    X: =Parent.Width * 0.32
+                                    Y: =0
+                              - txtClsActExchangeRate:
+                                  Control: Classic/TextInput@2.3.2
+                                  Properties:
+                                    BorderColor: =If(gblShowErrors && !(gblActuals.ExchangeRate > 0), RGBA(196, 30, 58, 1), RGBA(200, 205, 214, 1))
+                                    BorderThickness: =1
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Default: =If(gblActuals.ExchangeRate = 0, "", Text(gblActuals.ExchangeRate))
+                                    DisplayMode: =gblEditMode
+                                    Fill: =RGBA(255, 255, 255, 1)
+                                    FocusedBorderColor: =RGBA(0, 94, 162, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Format: =TextFormat.Number
+                                    Height: =32
+                                    HintText: =If(gblEditMode = DisplayMode.Edit, "Enter rate", "Not captured")
+                                    HoverBorderColor: =RGBA(0, 94, 162, 1)
+                                    OnChange: |-
+                                      =Set(gblActuals, Patch(gblActuals, {ExchangeRate: Coalesce(Value(Self.Text), 0)}))
+                                    PaddingLeft: =8
+                                    RadiusBottomLeft: =4
+                                    RadiusBottomRight: =4
+                                    RadiusTopLeft: =4
+                                    RadiusTopRight: =4
+                                    Size: =11
+                                    Tooltip: ="Actual exchange rate at closure"
+                                    Visible: =gblPEF.Close
+                                    Width: =Parent.Width * 0.17 - 16
+                                    X: =Parent.Width * 0.47 + 8
+                                    Y: =6
+                              - lblClsActExchangeRatePending:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(96, 94, 92, 1)
+                                    Fill: =RGBA(249, 250, 251, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =32
+                                    PaddingLeft: =8
+                                    Size: =10
+                                    Text: ="Not captured yet"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Visible: =!gblPEF.Close
+                                    Width: =Parent.Width * 0.17 - 16
+                                    X: =Parent.Width * 0.47 + 8
+                                    Y: =6
+                              - lblClsActExchangeRateOva:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: |-
+                                      =If(gblPEF.Close && (gblActuals.ExchangeRate > 0), With({p: Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).ExchangeRate), gblPEF.ExchangeRate), a: gblActuals.ExchangeRate}, With({d: Round(a - p, 4)}, If(d = 0, RGBA(96, 94, 92, 1), RGBA(16, 42, 67, 1)))), RGBA(96, 94, 92, 1))
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: |-
+                                      =If(gblPEF.Close && (gblActuals.ExchangeRate > 0), With({p: Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).ExchangeRate), gblPEF.ExchangeRate), a: gblActuals.ExchangeRate}, With({d: Round(a - p, 4)}, If(d = 0, "On plan", If(d > 0, "+", "-") & Text(Abs(d), "0.0000") & If(p = 0, "", "  (" & If(d > 0, "+", "-") & Text(Abs(d) / Abs(p), "0.00%") & ")")))), "—")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.18
+                                    X: =Parent.Width * 0.64
+                                    Y: =0
+                              - lblClsActExchangeRateFva:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: |-
+                                      =If(gblPEF.Close && (gblActuals.ExchangeRate > 0), With({p: gblPEF.ExchangeRate, a: gblActuals.ExchangeRate}, With({d: Round(a - p, 4)}, If(d = 0, RGBA(96, 94, 92, 1), RGBA(16, 42, 67, 1)))), RGBA(96, 94, 92, 1))
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: |-
+                                      =If(gblPEF.Close && (gblActuals.ExchangeRate > 0), With({p: gblPEF.ExchangeRate, a: gblActuals.ExchangeRate}, With({d: Round(a - p, 4)}, If(d = 0, "On plan", If(d > 0, "+", "-") & Text(Abs(d), "0.0000") & If(p = 0, "", "  (" & If(d > 0, "+", "-") & Text(Abs(d) / Abs(p), "0.00%") & ")")))), "—")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.18
+                                    X: =Parent.Width * 0.82
+                                    Y: =0
+                              - recClsActExchangeRateLine:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    Fill: =RGBA(229, 231, 235, 1)
+                                    Height: =1
+                                    Width: =Parent.Width
+                                    X: =0
+                                    Y: =43
+                        - conClsActRowStartDate:
+                            Control: GroupContainer@1.5.0
+                            Variant: ManualLayout
+                            Properties:
+                              BorderStyle: =BorderStyle.None
+                              DropShadow: =DropShadow.None
+                              Height: =44
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =564
+                            Children:
+                              - lblClsActStartDateItem:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingLeft: =12
+                                    Size: =11
+                                    Text: ="Start date *"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.17
+                                    X: =Parent.Width * 0
+                                    Y: =0
+                              - lblClsActStartDateOrig:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =11
+                                    Text: =If(IsBlank(Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).StartDate), gblPEF.StartDate)), "Not set", Text(Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).StartDate), gblPEF.StartDate), "dd mmm yyyy"))
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.15
+                                    X: =Parent.Width * 0.17
+                                    Y: =0
+                              - lblClsActStartDateFinal:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =11
+                                    Text: =If(IsBlank(gblPEF.StartDate), "Not set", Text(gblPEF.StartDate, "dd mmm yyyy"))
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.15
+                                    X: =Parent.Width * 0.32
+                                    Y: =0
+                              - dteClsActStartDate:
+                                  Control: Classic/DatePicker@2.6.0
+                                  Properties:
+                                    BorderColor: =If(gblShowErrors && !(!IsBlank(gblActuals.StartDate)), RGBA(196, 30, 58, 1), RGBA(200, 205, 214, 1))
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    DefaultDate: =gblActuals.StartDate
+                                    DisplayMode: =gblEditMode
+                                    Fill: =RGBA(255, 255, 255, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Format: ="dd mmm yyyy"
+                                    Height: =32
+                                    IconBackground: =RGBA(255, 255, 255, 1)
+                                    IconFill: =RGBA(0, 94, 162, 1)
+                                    OnChange: |-
+                                      =Set(gblActuals, Patch(gblActuals, {StartDate: Self.SelectedDate}))
+                                    Size: =11
+                                    Visible: =gblPEF.Close
+                                    Width: =Parent.Width * 0.17 - 16
+                                    X: =Parent.Width * 0.47 + 8
+                                    Y: =6
+                              - lblClsActStartDatePending:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(96, 94, 92, 1)
+                                    Fill: =RGBA(249, 250, 251, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =32
+                                    PaddingLeft: =8
+                                    Size: =10
+                                    Text: ="Not captured yet"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Visible: =!gblPEF.Close
+                                    Width: =Parent.Width * 0.17 - 16
+                                    X: =Parent.Width * 0.47 + 8
+                                    Y: =6
+                              - lblClsActStartDateOva:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: |-
+                                      =If(gblPEF.Close && (!IsBlank(gblActuals.StartDate)), With({p: Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).StartDate), gblPEF.StartDate), a: gblActuals.StartDate}, If(IsBlank(p) || IsBlank(a), RGBA(96, 94, 92, 1), a > p, RGBA(138, 90, 0, 1), a < p, RGBA(16, 124, 16, 1), RGBA(96, 94, 92, 1))), RGBA(96, 94, 92, 1))
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: |-
+                                      =If(gblPEF.Close && (!IsBlank(gblActuals.StartDate)), With({p: Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).StartDate), gblPEF.StartDate), a: gblActuals.StartDate}, If(IsBlank(p) || IsBlank(a), "Not set", With({d: DateDiff(p, a, TimeUnit.Days)}, If(d = 0, "On plan", d > 0, d & If(d = 1, " day later", " days later"), Abs(d) & If(d = -1, " day earlier", " days earlier"))))), "—")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.18
+                                    X: =Parent.Width * 0.64
+                                    Y: =0
+                              - lblClsActStartDateFva:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: |-
+                                      =If(gblPEF.Close && (!IsBlank(gblActuals.StartDate)), With({p: gblPEF.StartDate, a: gblActuals.StartDate}, If(IsBlank(p) || IsBlank(a), RGBA(96, 94, 92, 1), a > p, RGBA(138, 90, 0, 1), a < p, RGBA(16, 124, 16, 1), RGBA(96, 94, 92, 1))), RGBA(96, 94, 92, 1))
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: |-
+                                      =If(gblPEF.Close && (!IsBlank(gblActuals.StartDate)), With({p: gblPEF.StartDate, a: gblActuals.StartDate}, If(IsBlank(p) || IsBlank(a), "Not set", With({d: DateDiff(p, a, TimeUnit.Days)}, If(d = 0, "On plan", d > 0, d & If(d = 1, " day later", " days later"), Abs(d) & If(d = -1, " day earlier", " days earlier"))))), "—")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.18
+                                    X: =Parent.Width * 0.82
+                                    Y: =0
+                              - recClsActStartDateLine:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    Fill: =RGBA(229, 231, 235, 1)
+                                    Height: =1
+                                    Width: =Parent.Width
+                                    X: =0
+                                    Y: =43
+                        - conClsActRowEndDate:
+                            Control: GroupContainer@1.5.0
+                            Variant: ManualLayout
+                            Properties:
+                              BorderStyle: =BorderStyle.None
+                              DropShadow: =DropShadow.None
+                              Height: =44
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =608
+                            Children:
+                              - lblClsActEndDateItem:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingLeft: =12
+                                    Size: =11
+                                    Text: ="End date *"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.17
+                                    X: =Parent.Width * 0
+                                    Y: =0
+                              - lblClsActEndDateOrig:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =11
+                                    Text: =If(IsBlank(Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).EndDate), gblPEF.EndDate)), "Not set", Text(Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).EndDate), gblPEF.EndDate), "dd mmm yyyy"))
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.15
+                                    X: =Parent.Width * 0.17
+                                    Y: =0
+                              - lblClsActEndDateFinal:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =11
+                                    Text: =If(IsBlank(gblPEF.EndDate), "Not set", Text(gblPEF.EndDate, "dd mmm yyyy"))
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.15
+                                    X: =Parent.Width * 0.32
+                                    Y: =0
+                              - dteClsActEndDate:
+                                  Control: Classic/DatePicker@2.6.0
+                                  Properties:
+                                    BorderColor: =If(gblShowErrors && !(!IsBlank(gblActuals.EndDate)), RGBA(196, 30, 58, 1), RGBA(200, 205, 214, 1))
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    DefaultDate: =gblActuals.EndDate
+                                    DisplayMode: =gblEditMode
+                                    Fill: =RGBA(255, 255, 255, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Format: ="dd mmm yyyy"
+                                    Height: =32
+                                    IconBackground: =RGBA(255, 255, 255, 1)
+                                    IconFill: =RGBA(0, 94, 162, 1)
+                                    OnChange: |-
+                                      =Set(gblActuals, Patch(gblActuals, {EndDate: Self.SelectedDate}))
+                                    Size: =11
+                                    Visible: =gblPEF.Close
+                                    Width: =Parent.Width * 0.17 - 16
+                                    X: =Parent.Width * 0.47 + 8
+                                    Y: =6
+                              - lblClsActEndDatePending:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(96, 94, 92, 1)
+                                    Fill: =RGBA(249, 250, 251, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =32
+                                    PaddingLeft: =8
+                                    Size: =10
+                                    Text: ="Not captured yet"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Visible: =!gblPEF.Close
+                                    Width: =Parent.Width * 0.17 - 16
+                                    X: =Parent.Width * 0.47 + 8
+                                    Y: =6
+                              - lblClsActEndDateOva:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: |-
+                                      =If(gblPEF.Close && (!IsBlank(gblActuals.EndDate)), With({p: Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).EndDate), gblPEF.EndDate), a: gblActuals.EndDate}, If(IsBlank(p) || IsBlank(a), RGBA(96, 94, 92, 1), a > p, RGBA(196, 30, 58, 1), a < p, RGBA(16, 124, 16, 1), RGBA(96, 94, 92, 1))), RGBA(96, 94, 92, 1))
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: |-
+                                      =If(gblPEF.Close && (!IsBlank(gblActuals.EndDate)), With({p: Coalesce(If(gblPEF.RevisionNo > 0, LookUp(colRevisions, Rev = 0).EndDate), gblPEF.EndDate), a: gblActuals.EndDate}, If(IsBlank(p) || IsBlank(a), "Not set", With({d: DateDiff(p, a, TimeUnit.Days)}, If(d = 0, "On plan", d > 0, d & If(d = 1, " day later", " days later"), Abs(d) & If(d = -1, " day earlier", " days earlier"))))), "—")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.18
+                                    X: =Parent.Width * 0.64
+                                    Y: =0
+                              - lblClsActEndDateFva:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Right
+                                    Color: |-
+                                      =If(gblPEF.Close && (!IsBlank(gblActuals.EndDate)), With({p: gblPEF.EndDate, a: gblActuals.EndDate}, If(IsBlank(p) || IsBlank(a), RGBA(96, 94, 92, 1), a > p, RGBA(196, 30, 58, 1), a < p, RGBA(16, 124, 16, 1), RGBA(96, 94, 92, 1))), RGBA(96, 94, 92, 1))
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: |-
+                                      =If(gblPEF.Close && (!IsBlank(gblActuals.EndDate)), With({p: gblPEF.EndDate, a: gblActuals.EndDate}, If(IsBlank(p) || IsBlank(a), "Not set", With({d: DateDiff(p, a, TimeUnit.Days)}, If(d = 0, "On plan", d > 0, d & If(d = 1, " day later", " days later"), Abs(d) & If(d = -1, " day earlier", " days earlier"))))), "—")
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.18
+                                    X: =Parent.Width * 0.82
+                                    Y: =0
+                              - recClsActEndDateLine:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    Fill: =RGBA(229, 231, 235, 1)
+                                    Height: =1
+                                    Width: =Parent.Width
+                                    X: =0
+                                    Y: =43
+                        - lblClsActLegend:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =RGBA(96, 94, 92, 1)
+                              Font: =Font.'Segoe UI'
+                              Height: =18
+                              Size: =9
+                              Text: ="Costs over plan and later dates show in red; savings and earlier dates in green. Profit and client price are the other way round."
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =664
+                        - lblClsActErr:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =RGBA(196, 30, 58, 1)
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =18
+                              Size: =9
+                              Text: ="Enter the actual client price, project costs, labour, exchange rate and dates."
+                              VerticalAlign: =VerticalAlign.Middle
+                              Visible: =gblShowErrors && (gblActuals.ClientPrice <= 0 || gblActuals.ProjectCost <= 0 || gblActuals.Labour <= 0 || gblActuals.ExchangeRate <= 0 || IsBlank(gblActuals.StartDate) || IsBlank(gblActuals.EndDate))
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =686
+                  - conClsSecDeliverables:
+                      Control: GroupContainer@1.5.0
+                      Variant: ManualLayout
+                      Properties:
+                        BorderStyle: =BorderStyle.None
+                        DropShadow: =DropShadow.Light
+                        Fill: =RGBA(255, 255, 255, 1)
+                        Height: =124 + Max(1, CountRows(colDeliverables)) * 56
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        Width: =Parent.Width - 48
+                        X: =24
+                        Y: =If(gblPEF.Close, 1096, 1184)
+                      Children:
+                        - lblClsDeliverablesTitle:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =RGBA(16, 42, 67, 1)
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =24
+                              Size: =13
+                              Text: ="Deliverables"
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =Parent.Width - 220
+                              X: =16
+                              Y: =12
+                        - lblClsDeliverablesHint:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =RGBA(96, 94, 92, 1)
+                              Font: =Font.'Segoe UI'
+                              Height: =18
+                              Size: =9
+                              Text: ="Confirm which deliverables were achieved and explain any that were not."
+                              VerticalAlign: =VerticalAlign.Middle
+                              Width: =Parent.Width - 220
+                              X: =16
+                              Y: =36
+                        - recClsDeliverablesLine:
+                            Control: Rectangle@2.3.0
+                            Properties:
+                              Fill: =RGBA(229, 231, 235, 1)
+                              Height: =1
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =60
+                        - btnClsDelAchievedCount:
+                            Control: Classic/Button@2.2.0
+                            Properties:
+                              BorderThickness: =0
+                              Color: =If(CountRows(colDeliverables) > 0 && CountRows(Filter(colDeliverables, Achieved)) = CountRows(colDeliverables), RGBA(16, 124, 16, 1), RGBA(138, 90, 0, 1))
+                              DisplayMode: =DisplayMode.View
+                              Fill: =If(CountRows(colDeliverables) > 0 && CountRows(Filter(colDeliverables, Achieved)) = CountRows(colDeliverables), RGBA(223, 246, 221, 1), RGBA(255, 244, 206, 1))
+                              Font: =Font.'Segoe UI'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =24
+                              HoverFill: =Self.Fill
+                              RadiusBottomLeft: =12
+                              RadiusBottomRight: =12
+                              RadiusTopLeft: =12
+                              RadiusTopRight: =12
+                              Size: =10
+                              Text: =If(CountRows(colDeliverables) = 0, "No deliverables", CountRows(Filter(colDeliverables, Achieved)) & " of " & CountRows(colDeliverables) & " achieved")
+                              Width: =180
+                              X: =Parent.Width - 196
+                              Y: =16
+                        - conClsDelHeader:
+                            Control: GroupContainer@1.5.0
+                            Variant: ManualLayout
+                            Properties:
+                              BorderStyle: =BorderStyle.None
+                              DropShadow: =DropShadow.None
+                              Fill: =RGBA(229, 241, 250, 1)
+                              Height: =36
+                              RadiusBottomLeft: =4
+                              RadiusBottomRight: =4
+                              RadiusTopLeft: =4
+                              RadiusTopRight: =4
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =72
+                            Children:
+                              - lblClsDelHdrNo:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Left
+                                    Color: =RGBA(16, 42, 67, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =36
+                                    PaddingLeft: =12
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: ="No."
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.06
+                                    X: =Parent.Width * 0
+                                    Y: =0
+                              - lblClsDelHdrOriginal:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Left
+                                    Color: =RGBA(16, 42, 67, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =36
+                                    PaddingLeft: =12
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: ="Original deliverable"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.27
+                                    X: =Parent.Width * 0.06
+                                    Y: =0
+                              - lblClsDelHdrFinal:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Left
+                                    Color: =RGBA(16, 42, 67, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =36
+                                    PaddingLeft: =12
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: ="Final deliverable"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.27
+                                    X: =Parent.Width * 0.33
+                                    Y: =0
+                              - lblClsDelHdrAchieved:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Left
+                                    Color: =RGBA(16, 42, 67, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =36
+                                    PaddingLeft: =12
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: ="Achieved"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.12
+                                    X: =Parent.Width * 0.6
+                                    Y: =0
+                              - lblClsDelHdrComment:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Left
+                                    Color: =RGBA(16, 42, 67, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =36
+                                    PaddingLeft: =12
+                                    PaddingRight: =12
+                                    Size: =10
+                                    Text: ="Deliverable comment"
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.Width * 0.28
+                                    X: =Parent.Width * 0.72
+                                    Y: =0
+                        - galClsDeliverables:
+                            Control: Gallery@2.15.0
+                            Variant: Vertical
+                            Properties:
+                              Height: =Max(1, CountRows(colDeliverables)) * 56
+                              Items: =colDeliverables
+                              ShowScrollbar: =false
+                              TemplatePadding: =0
+                              TemplateSize: =56
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =108
+                            Children:
+                              - lblClsDelNo:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(96, 94, 92, 1)
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =56
+                                    PaddingLeft: =12
+                                    Size: =11
+                                    Text: =ThisItem.No
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.TemplateWidth * 0.06
+                                    X: =0
+                                    Y: =0
+                              - lblClsDelOriginal:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =RGBA(32, 31, 30, 1)
+                                    Font: =Font.'Segoe UI'
+                                    Height: =56
+                                    PaddingLeft: =12
+                                    PaddingRight: =8
+                                    Size: =10
+                                    Text: =If(IsBlank(ThisItem.Original), "Not captured", ThisItem.Original)
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.TemplateWidth * 0.27
+                                    X: =Parent.TemplateWidth * 0.06
+                                    Y: =0
+                              - lblClsDelFinal:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Color: =If(ThisItem.Final <> ThisItem.Original, RGBA(16, 42, 67, 1), RGBA(32, 31, 30, 1))
+                                    Font: =Font.'Segoe UI'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =56
+                                    PaddingLeft: =12
+                                    PaddingRight: =8
+                                    Size: =10
+                                    Text: =If(IsBlank(ThisItem.Final), "Not captured", ThisItem.Final)
+                                    VerticalAlign: =VerticalAlign.Middle
+                                    Width: =Parent.TemplateWidth * 0.27
+                                    X: =Parent.TemplateWidth * 0.33
+                                    Y: =0
+                              - conClsDelAchievedCell:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: ManualLayout
+                                  Properties:
+                                    BorderStyle: =BorderStyle.None
+                                    DropShadow: =DropShadow.None
+                                    Height: =56
+                                    Width: =Parent.TemplateWidth * 0.12
+                                    X: =Parent.TemplateWidth * 0.6
+                                    Y: =0
+                                  Children:
+                                    - chkClsDelAchieved:
+                                        Control: Classic/CheckBox@2.1.0
+                                        Properties:
+                                          CheckboxBackgroundFill: =RGBA(255, 255, 255, 1)
+                                          CheckboxBorderColor: =RGBA(200, 205, 214, 1)
+                                          CheckmarkFill: =RGBA(0, 94, 162, 1)
+                                          Color: =RGBA(32, 31, 30, 1)
+                                          Default: =ThisItem.Achieved
+                                          DisplayMode: =If(gblPEF.Close, gblEditMode, DisplayMode.View)
+                                          Font: =Font.'Segoe UI'
+                                          Height: =32
+                                          OnCheck: |-
+                                            =Patch(colDeliverables, ThisItem, {Achieved: true})
+                                          OnUncheck: |-
+                                            =Patch(colDeliverables, ThisItem, {Achieved: false})
+                                          Size: =11
+                                          Text: ="Yes"
+                                          Width: =88
+                                          X: =8
+                                          Y: =12
+                              - conClsDelCommentCell:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: ManualLayout
+                                  Properties:
+                                    BorderStyle: =BorderStyle.None
+                                    DropShadow: =DropShadow.None
+                                    Height: =56
+                                    Width: =Parent.TemplateWidth * 0.28
+                                    X: =Parent.TemplateWidth * 0.72
+                                    Y: =0
+                                  Children:
+                                    - txtClsDelComment:
+                                        Control: Classic/TextInput@2.3.2
+                                        Properties:
+                                          BorderColor: =RGBA(200, 205, 214, 1)
+                                          BorderThickness: =1
+                                          Color: =RGBA(32, 31, 30, 1)
+                                          Default: =ThisItem.Comment
+                                          DisplayMode: =If(gblPEF.Close, gblEditMode, DisplayMode.View)
+                                          Fill: =RGBA(255, 255, 255, 1)
+                                          FocusedBorderColor: =RGBA(0, 94, 162, 1)
+                                          Font: =Font.'Segoe UI'
+                                          Height: =36
+                                          HintText: =If(gblPEF.Close && gblEditMode = DisplayMode.Edit, If(ThisItem.Achieved, "Optional comment", "Why was it not achieved?"), "No comment")
+                                          HoverBorderColor: =RGBA(0, 94, 162, 1)
+                                          OnChange: |-
+                                            =Patch(colDeliverables, ThisItem, {Comment: Self.Text})
+                                          PaddingLeft: =8
+                                          RadiusBottomLeft: =4
+                                          RadiusBottomRight: =4
+                                          RadiusTopLeft: =4
+                                          RadiusTopRight: =4
+                                          Size: =11
+                                          Width: =Parent.Width - 16
+                                          X: =4
+                                          Y: =10
+                              - recClsDelLine:
+                                  Control: Rectangle@2.3.0
+                                  Properties:
+                                    Fill: =RGBA(229, 231, 235, 1)
+                                    Height: =1
+                                    Width: =Parent.TemplateWidth
+                                    X: =0
+                                    Y: =Parent.TemplateHeight - 1
+                        - lblClsDelEmpty:
+                            Control: Label@2.5.1
+                            Properties:
+                              Align: =Align.Center
+                              Color: =RGBA(96, 94, 92, 1)
+                              Font: =Font.'Segoe UI'
+                              Height: =56
+                              Size: =11
+                              Text: ="No deliverables were captured on the Cover Page."
+                              VerticalAlign: =VerticalAlign.Middle
+                              Visible: =CountRows(colDeliverables) = 0
+                              Width: =Parent.Width - 32
+                              X: =16
+                              Y: =108
       - conClsAppBar:
           Control: GroupContainer@1.5.0
           Variant: ManualLayout
