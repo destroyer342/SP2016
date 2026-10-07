@@ -7,6 +7,7 @@ App:
       =Set(gblDemoLoaded, false);
       // ---------- Session ----------
       Set(gblRole, "Applicant (CI)");
+      Set(gblTab, "Cover");
       Set(gblShowErrors, false);
       Set(gblSelectedSBU, 1);
       Set(gblConfirmation, {Title: "", Message: "", Kind: "Info"});
