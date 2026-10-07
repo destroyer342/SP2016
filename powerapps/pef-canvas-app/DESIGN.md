@@ -9,19 +9,15 @@ This is the single source of truth for building and maintaining the Power Apps c
 | File | Contents |
 |---|---|
 | `App.pa.yaml` | `App.OnStart`: all demo data, lookup tables and global variables |
-| `screens/01-scrDashboard.pa.yaml` | PEF register (landing) |
-| `screens/02-scrCoverPage.pa.yaml` | Cover Page (main form) |
-| `screens/03-scrHoursCosts.pa.yaml` | Hours & Costs |
-| `screens/04-scrMotivations.pa.yaml` | Motivations & attachments |
-| `screens/05-scrRevisions.pa.yaml` | Revision history |
-| `screens/06-scrApprovals.pa.yaml` | Approval chain and actions |
-| `screens/07-scrReview.pa.yaml` | Review & Submit (validation + summary, replaces PrintView) |
-| `screens/08-scrClosure.pa.yaml` | Project closure |
-| `screens/09-scrConfirmation.pa.yaml` | Confirmation after submit |
-| `screens/10-scrDetailedInfo.pa.yaml` | Detailed Information (diagnostics) |
+| `screens/01-scrDashboard.pa.yaml` | `scrDashboard`: PEF register (landing) |
+| `screens/02-scrPEF.pa.yaml` | `scrPEF`: the PEF form. One shared header and tab bar; each InfoPath view is a tab container (§5.1) |
+| `screens/03-scrConfirmation.pa.yaml` | `scrConfirmation`: result after Submit for approval |
+| `tools/gen_chrome.py` | Generates the shared chrome; `--check` verifies it (and every tab container's `Visible` rule); `--write` regenerates it in place |
 | `tools/check_app.py` | Cross-screen checks (unique names, known variables/fields, bracket balance) + runs Parker's `validate.py` |
 
 Each screen file has the root `Screens:` with exactly one screen, the same shape as Parker's worked example.
+
+**Three screens, not one per view.** The InfoPath views share the same header and project context, so they are tab containers on one screen (`scrPEF`) instead of separate screens. The tab container shown is selected by `gblTab`. Only the register (`scrDashboard`) and the confirmation (`scrConfirmation`) are separate screens.
 
 ---
 
@@ -61,20 +57,21 @@ Never use `Icon.Documents`; it does not exist.
 ## 3. Naming
 
 - Screens: `scr<Name>`.
-- Controls: `<prefix><Tag><Name>`, where `<Tag>` is the screen tag. Control names are app-wide and must be **unique across all screens**.
+- Controls: `<prefix><Tag><Name>`. `<Tag>` is the screen tag on `scrDashboard` / `scrConfirmation`, the chrome tag `Pef` for the shared bars of `scrPEF`, and the **tab tag** for everything inside a tab container. Control names are app-wide and must be **unique across all screens**.
 
-| Screen | Tag |
-|---|---|
-| `scrDashboard` | `Dsh` |
-| `scrCoverPage` | `Cvr` |
-| `scrHoursCosts` | `Hrs` |
-| `scrMotivations` | `Mot` |
-| `scrRevisions` | `Rev` |
-| `scrApprovals` | `Apr` |
-| `scrReview` | `Rvw` |
-| `scrClosure` | `Cls` |
-| `scrConfirmation` | `Cnf` |
-| `scrDetailedInfo` | `Dbg` |
+| Screen / tab container | `gblTab` | Tag |
+|---|---|---|
+| `scrDashboard` | | `Dsh` |
+| `scrPEF` shared chrome | | `Pef` |
+| `scrPEF` → Cover Page | `"Cover"` | `Cvr` |
+| `scrPEF` → Hours & Costs | `"Hours"` | `Hrs` |
+| `scrPEF` → Motivations | `"Motivations"` | `Mot` |
+| `scrPEF` → Revisions | `"Revisions"` | `Rev` |
+| `scrPEF` → Approvals | `"Approvals"` | `Apr` |
+| `scrPEF` → Review & Submit | `"Review"` | `Rvw` |
+| `scrPEF` → Closure | `"Closure"` | `Cls` |
+| `scrPEF` → Detailed info | `"Details"` | `Dbg` |
+| `scrConfirmation` | | `Cnf` |
 
 | Prefix | Control |
 |---|---|
@@ -175,23 +172,32 @@ All buttons are `Classic/Button`, `Height: =32`, radius 4, `Size: =11`, `FontWei
 - Design size 1366 × 768 (tablet landscape). Everything is responsive through `Parent.Width` / `Parent.Height`.
 - **No horizontal `FillPortions`.** Columns are `Parent.Width * fraction` or `(Parent.Width - gaps) / n` with explicit `X`.
 
-### 5.1 Form-screen chrome (generated, do not edit by hand)
+### 5.1 Screens, chrome and tab containers (generated, do not edit the chrome by hand)
 
-Every form screen (`Cvr`, `Hrs`, `Mot`, `Rev`, `Apr`, `Rvw`, `Cls`) gets the same three bars from `tools/gen_chrome.py`. They are emitted **after** the scrolling body so that they render on top.
+`scrPEF` gets three bars from `tools/gen_chrome.py`. They are emitted **after** the tab containers so that they render on top.
 
 | Bar | Y | Height | Contents |
 |---|---|---|---|
-| `con<Tag>AppBar` | 0 | 48 | Brand button (→ Dashboard), app title, "View as" role switcher, diagnostics icon (Administrator only), avatar |
-| `con<Tag>ProjectBar` | 48 | 64 | Project number, title, division · group · revenue stream, status badge, revision, workflow state |
-| `con<Tag>TabBar` | 112 | 48 | Tabs (Cover Page, Hours & Costs, Motivations, Revisions, Approvals, Review & Submit, Closure*) and commands (Cancel Approval*, Save PEF, Start Approval*) |
+| `conPefAppBar` | 0 | 48 | Brand button (→ Dashboard), app title, "View as" role switcher, Detailed info icon (Administrator only), avatar |
+| `conPefProjectBar` | 48 | 64 | Project number, title, division · group · revenue stream, status badge, revision, workflow state |
+| `conPefTabBar` | 112 | 48 | Tabs (Cover Page, Hours & Costs, Motivations, Revisions, Approvals, Review & Submit, Closure*, Detailed info*) and commands (Cancel Approval*, Save PEF, Start Approval*) |
 
-`*` = conditional. Body: `fgd<Tag>Body` (FluidGrid) at `Y: =160`, `Height: =Parent.Height - 160`, holding `dcd<Tag>Body` (DataCard). The DataCard's fixed `Height` must be ≥ the bottom of its lowest child + 24.
+`*` = conditional: Closure when `gblPEF.Close`; Detailed info for the Administrator; Cancel Approval while pending; Start Approval for the applicant on a Draft/Rejected PEF.
 
-Tabs are live tap targets (Parker): every tab, including the active one, keeps `DisplayMode` Edit and its `Navigate` `OnSelect`. The active tab is marked by Primary text and a 3 px underline (`rec<Tag>TabIndicator`). **Start Approval** in the tab bar opens `scrReview`, which is the validation gate. **Save PEF** runs `S_SAVE`, and **Cancel Approval** runs `S_CANCEL_APPROVAL`.
+**Tab containers.** Each tab's content is one `fgd<Tag>Body` (FluidGrid) at `Y: =160`, `Height: =Parent.Height - 160`, `Visible: =gblTab = "<key>"`. It holds `dcd<Tag>Body` (DataCard), whose fixed `Height` must be ≥ the bottom of its lowest child + 24. Every tab scrolls on its own.
 
-`scrDashboard`, `scrConfirmation` and `scrDetailedInfo` get the App bar only (`con<Tag>AppBar`, Y 0 to 48). Their body starts at `Y: =48`. They may use their own `FluidGrid` → `DataCard` if the body is taller than the screen.
+**Tabs** are live tap targets (Parker): `OnSelect: =Set(gblTab, "<key>")`. The active tab gets Primary text, Semibold, and the 3 px underline `recPefTabIndicator`, whose X/Width follow `gblTab`. **Start Approval** sets `gblTab` to `"Review"` (the validation gate). **Save PEF** runs `S_SAVE`, and **Cancel Approval** runs `S_CANCEL_APPROVAL`.
 
-Regenerate or verify the chrome with `python tools/gen_chrome.py --check`. Never hand-edit the chrome; change `gen_chrome.py` and regenerate instead.
+**Moving between tabs and screens:**
+
+| From | To | Formula |
+|---|---|---|
+| inside `scrPEF` | another tab | `Set(gblTab, "<key>")` (never `Navigate`) |
+| `scrDashboard` / `scrConfirmation` | a tab of the form | `Set(gblTab, "<key>"); Navigate(scrPEF, ScreenTransition.Fade)` |
+
+`scrDashboard` and `scrConfirmation` get the App bar only (`con<Tag>AppBar`, Y 0 to 48), and their body starts at `Y: =48`.
+
+Verify the chrome with `python tools/gen_chrome.py --check`. Never hand-edit the chrome: change `gen_chrome.py`, then run `python tools/gen_chrome.py --write`, which regenerates the chrome and keeps every body unchanged.
 
 ### 5.2 Body grid (inside `dcd<Tag>Body`)
 
@@ -199,8 +205,8 @@ Regenerate or verify the chrome with `python tools/gen_chrome.py --check`. Never
 - **Section card:** `GroupContainer` ManualLayout, `Fill: =RGBA(255, 255, 255, 1)`, radius 8, `BorderStyle: =BorderStyle.None`, `DropShadow: =DropShadow.Light` (a real elevated surface).
   - Title label at `X: =16`, `Y: =12`, `Height: =24`.
   - Optional hint at `Y: =36`, `Height: =18`.
-  - Hairline `Rectangle` at `Y: =48`, `Height: =1`, `X: =16`, `Width: =Parent.Width - 32`.
-  - First field row at `Y: =60`.
+  - Hairline `Rectangle` at `Y: =60`, `Height: =1`, `X: =16`, `Width: =Parent.Width - 32`.
+  - First field row at `Y: =72`.
 - **Field wrapper:** `con<Tag>Fld<Name>`, ManualLayout, no `Fill`, `BorderStyle: =BorderStyle.None`, `DropShadow: =DropShadow.None`, `Height: =64`.
   - Label at `X: =0`, `Y: =0`, `Width: =Parent.Width`, `Height: =20`.
   - Input at `X: =0`, `Y: =24`, `Width: =Parent.Width`, `Height: =36`.
@@ -213,7 +219,7 @@ Regenerate or verify the chrome with `python tools/gen_chrome.py --check`. Never
 | 3 | `(Parent.Width - 64) / 3` | `16 + i * ((Parent.Width - 64) / 3 + 16)` |
 | 4 | `(Parent.Width - 80) / 4` | `16 + i * ((Parent.Width - 80) / 4 + 16)` |
 
-- **Row pitch:** 72 px (64 field + 8 gap), so rows are at `Y` = 60, 132, 204, …
+- **Row pitch:** 72 px (64 field + 8 gap), so rows are at `Y` = 72, 144, 216, …
 - **Required fields:** label text ends with `" *"`.
 - **Inline validation:** when `gblShowErrors` is true and the value is missing, the input's `BorderColor` turns Error and an error label appears.
 - **Read-only values** (calculated): a `Label` with `Fill` Stripe, `PaddingLeft: =8`, radius not available, height 36, `Align.Right` for money.
@@ -258,6 +264,7 @@ Regenerate or verify the chrome with `python tools/gen_chrome.py --check`. Never
 |---|---|---|
 | `gblDemoLoaded` | Boolean | OnStart has run |
 | `gblRole` | Text | Simulated user role (one of `colRoles`) |
+| `gblTab` | Text | Tab shown on `scrPEF`: `Cover`, `Hours`, `Motivations`, `Revisions`, `Approvals`, `Review`, `Closure`, `Details` |
 | `gblEditMode` | DisplayMode | `Edit` for the applicant on a Draft/Rejected PEF, otherwise `View` (see `S_EDITMODE`) |
 | `gblShowErrors` | Boolean | Show inline validation (set after a failed submit) |
 | `gblPEF` | Record | The PEF being edited (fields in §6.2) |
@@ -453,7 +460,7 @@ Navigate(scrConfirmation, ScreenTransition.Fade)
 
 ### S_APPROVE
 
-Approve the pending step (`txtAprComments` is the comments box on `scrApprovals`).
+Approve the pending step (`txtAprComments` is the comments box on the Approvals tab).
 
 ```
 With({s: LookUp(colApprovals, Status = "Pending")}, Patch(colApprovals, s, {Status: "Approved", ActionDate: Now(), ActedBy: LookUp(colRolePeople, Role = gblRole, Person), Comments: txtAprComments.Text}); With({nxt: First(Sort(Filter(colApprovals, Required && Status = "Waiting"), Step))}, If(IsBlank(nxt), If(gblPEF.Extend, Collect(colRevisions, {Rev: gblPEF.RevisionNo, RevDate: Today(), ClientPrice: gblTotals.ClientPrice, ProjectCost: gblTotals.ProjectCost, Labour: gblTotals.Labour, OPEX: gblTotals.OPEX, Contingency: gblTotals.Contingency, Warranty: gblTotals.Warranty, ServiceSBUs: gblTotals.ServiceCosts, Profit: gblTotals.Profit, ProfitPct: gblTotals.ProfitPct, ExchangeRate: gblPEF.ExchangeRate, StartDate: gblPEF.StartDate, EndDate: gblPEF.EndDate, ProjectType: gblPEF.ProjectType, Location: gblPEF.Location, Risks: gblPEF.Risks, Deliverables: Concat(colDeliverables, Final, "; ")})); Set(gblPEF, Patch(gblPEF, {Status: If(gblPEF.Close, "Closed", "Approved"), Extend: false, WorkflowState: If(gblPEF.Close, "Closure approved: project closed", "Approved: all approvals complete"), Modified: Now()})), Patch(colApprovals, nxt, {Status: "Pending"}); Set(gblPEF, Patch(gblPEF, {WorkflowState: "Waiting for " & nxt.Role & " approval", Modified: Now()})))));
@@ -499,7 +506,7 @@ Set(gblActuals, If(gblPEF.Status = "Closed", gblSampleActuals, gblBlankActuals))
 <S_RECALC>;
 <S_EDITMODE>;
 Set(gblShowErrors, false);
-Navigate(scrCoverPage, ScreenTransition.Fade)
+Set(gblTab, "Cover"); Navigate(scrPEF, ScreenTransition.Fade)
 ```
 
 ### S_NEW_PEF
@@ -513,7 +520,7 @@ Set(gblActuals, gblBlankActuals);
 <S_RECALC>;
 <S_EDITMODE>;
 Set(gblShowErrors, false);
-Navigate(scrCoverPage, ScreenTransition.Fade)
+Set(gblTab, "Cover"); Navigate(scrPEF, ScreenTransition.Fade)
 ```
 
 ### S_ISSUES
@@ -524,7 +531,7 @@ The validation table, a **Value** formula (not behaviour). Use it as the `Items`
 Filter(Table({Area: "Cover Page", Field: "Divisional Group", Message: "Select the divisional group.", Missing: IsBlank(gblPEF.DivisionalGroup)}, {Area: "Cover Page", Field: "Revenue Stream", Message: "Select the revenue stream.", Missing: IsBlank(gblPEF.RevenueStream)}, {Area: "Cover Page", Field: "Project Title", Message: "Enter the project title (max 40 characters).", Missing: IsBlank(gblPEF.ProjectTitle)}, {Area: "Cover Page", Field: "PIC", Message: "Select the Project Information Chart (PIC).", Missing: IsBlank(gblPEF.PIC)}, {Area: "Cover Page", Field: "Sales Group", Message: "Sales Group is required.", Missing: IsBlank(gblPEF.SalesGroup)}, {Area: "Cover Page", Field: "Work Package", Message: "Work Package Code is required for State Grant projects.", Missing: gblPEF.RevenueStream = "State Grant" && IsBlank(gblPEF.WorkPackage)}, {Area: "Cover Page", Field: "Start Date", Message: "Start Date is required.", Missing: IsBlank(gblPEF.StartDate)}, {Area: "Cover Page", Field: "End Date", Message: "End Date is required and must be after the Start Date.", Missing: IsBlank(gblPEF.EndDate) || gblPEF.EndDate < gblPEF.StartDate}, {Area: "Cover Page", Field: "Checker", Message: "Select a checker or untick Checker Approval.", Missing: gblPEF.CheckerRequired && IsBlank(gblPEF.Checker)}, {Area: "Cover Page", Field: "Client Price", Message: "Client Price is required.", Missing: gblTotals.ClientPrice <= 0}, {Area: "Cover Page", Field: "Service SBUs", Message: "Every service SBU needs a division, head and cost.", Missing: gblPEF.ServiceSBURequired && (CountRows(colServiceSBUs) = 0 || CountRows(Filter(colServiceSBUs, IsBlank(Division) || IsBlank(SBUHead) || Cost <= 0)) > 0)}, {Area: "Hours & Costs", Field: "Project Cost", Message: "Project costs are required.", Missing: gblTotals.ProjectCost <= 0}, {Area: "Hours & Costs", Field: "Staff", Message: "Select at least 1 grade who will be involved in the project.", Missing: CountRows(colStaff) = 0}, {Area: "Hours & Costs", Field: "Staff lines", Message: "Every staff line needs a grade, financial year, hours and comments.", Missing: CountRows(Filter(colStaff, IsBlank(Grade) || IsBlank(FinancialYear) || Hours <= 0 || IsBlank(Comments))) > 0}, {Area: "Hours & Costs", Field: "Running costs", Message: "Every running cost needs a cost element, amount and description.", Missing: CountRows(Filter(colRunningCosts, IsBlank(CostElementTitle) || Amount <= 0 || IsBlank(Description))) > 0}, {Area: "Motivations", Field: "Motivation", Message: "Motivation is required.", Missing: IsBlank(Last(colMotivations).Motivation)}, {Area: "Closure", Field: "Closure description", Message: "Explain time and cost overruns and deliverables not achieved.", Missing: gblPEF.Close && IsBlank(gblPEF.ClosureDescription)}, {Area: "Closure", Field: "Actuals", Message: "Enter the actual client price, project costs, labour, exchange rate and dates.", Missing: gblPEF.Close && (gblActuals.ClientPrice <= 0 || gblActuals.ProjectCost <= 0 || gblActuals.Labour <= 0 || gblActuals.ExchangeRate <= 0 || IsBlank(gblActuals.StartDate) || IsBlank(gblActuals.EndDate))}), Missing)
 ```
 
-Map `Area` to a screen when navigating to it: `Switch(ThisItem.Area, "Cover Page", Navigate(scrCoverPage), "Hours & Costs", Navigate(scrHoursCosts), "Motivations", Navigate(scrMotivations), "Closure", Navigate(scrClosure))`.
+Map `Area` to a tab when going to it: `Switch(ThisItem.Area, "Cover Page", Set(gblTab, "Cover"), "Hours & Costs", Set(gblTab, "Hours"), "Motivations", Set(gblTab, "Motivations"), "Closure", Set(gblTab, "Closure"))`.
 
 ### Formatting
 
@@ -540,15 +547,15 @@ Map `Area` to a screen when navigating to it: `Switch(ThisItem.Area, "Cover Page
 
 ## 8. Screen catalogue (InfoPath → Power Apps)
 
-| Screen | InfoPath source | Contents |
+| Screen → tab | InfoPath source | Contents |
 |---|---|---|
 | `scrDashboard` | Form library view (new) | KPI cards by status, search and status filter chips, register table (`colPEFs`), **New PEF**, open row |
-| `scrCoverPage` | Cover Page view | Sections: Project identification · Classification & PIC · Project details · People · Dates & pricing summary · Client, proposals & orders (commercial) · Milestones & billing plan · Deliverables · Controlling SBU planned costs · Service SBUs (when required) · Checker (when required) · Project flags (Extend / Close) |
-| `scrHoursCosts` | Hours And Costs view | Hourly planning table, carry-over labour, running costs table, contingency and warranty (amount or %), totals |
-| `scrMotivations` | Motivations view | Motivation history (latest editable), project attachments (mock upload) |
-| `scrRevisions` | Revisions view | Latest vs Original vs revisions table; last 5 shown; empty state |
-| `scrApprovals` | Approval sections of the Cover Page | Approval chain stepper, delegates, comments, Approve / Reject for the simulated role |
-| `scrReview` | PrintView + Start Approval gate | Validation checklist with **Go to** links; read-only summary; Submit for approval; Print |
-| `scrClosure` | Closure view | Closure motivation; Original / Final / Actual comparison with increases; deliverables achieved |
-| `scrConfirmation` | After submit (new) | Result card, next steps, buttons |
-| `scrDetailedInfo` | Detailed Information view | Workflow state, simulated user, approvers, delegates, flags, package code, totals |
+| `scrPEF` → Cover Page | Cover Page view | Project identification and numbering · Project actions (Extend / Close / Checker) · Classification & PIC · Project details · People · Checker (when required) · Dates & pricing · Client, proposals & orders (commercial) · Milestones & billing plan · Deliverables · Controlling SBU planned costs · Service SBUs (when required) · Totals |
+| `scrPEF` → Hours & Costs | Hours And Costs view | Hourly planning table, carry-over labour, running costs table, contingency and warranty (amount or %), totals |
+| `scrPEF` → Motivations | Motivations view | Motivation history (latest editable), project attachments (mock upload) |
+| `scrPEF` → Revisions | Revisions view | Latest vs original, last 5 revisions, revision details; empty state |
+| `scrPEF` → Approvals | Approval sections of the Cover Page | Approval route, delegates, decision panel (Approve / Reject for the simulated role), history, delegations |
+| `scrPEF` → Review & Submit | PrintView + Start Approval gate | Validation checklist with **Go to** links; read-only summary; Submit for approval; Print |
+| `scrPEF` → Closure | Closure view | Closure motivation; original / final / actual comparison with increases; deliverables achieved |
+| `scrPEF` → Detailed info | Detailed Information view | Workflow state, simulated user, approvers, delegates, flags, package code, totals (Administrator) |
+| `scrConfirmation` | After submit (new) | Result card, next approver, next steps, buttons |
