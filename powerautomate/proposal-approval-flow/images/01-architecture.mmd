@@ -1,0 +1,89 @@
+---
+config:
+  flowchart:
+    useMaxWidth: false
+---
+flowchart LR
+    %% Render note: useMaxWidth false keeps the natural size. Arrows into Master Contacts and Master Calendar from the lookup child flows are INFERRED.
+    classDef trigger fill:#0b3d91,stroke:#06245a,stroke-width:2px,color:#ffffff
+    classDef mainflow fill:#ffffff,stroke:#0b3d91,stroke-width:3px,color:#0b3d91
+    classDef sharepoint fill:#b2dfdb,stroke:#00796b,color:#00332e
+    classDef approval fill:#d1c4e9,stroke:#5e35b1,color:#1f0f4d
+    classDef email fill:#bbdefb,stroke:#1565c0,color:#0d2c54
+    classDef childflow fill:#eeeeee,stroke:#616161,stroke-width:2px,stroke-dasharray:6 4,color:#212121
+    classDef variable fill:#f5f5f5,stroke:#9e9e9e,color:#212121
+    classDef note fill:#fff3e0,stroke:#d84315,stroke-dasharray:4 3,color:#4e1a00
+    classDef scope fill:#f4f8fb,stroke:#78909c,color:#263238
+    classDef site fill:#eef8f7,stroke:#00796b,color:#00332e
+    classDef svc fill:#f3f6fd,stroke:#1565c0,color:#0d2c54
+
+    subgraph SOL["Solution: Proposal Approval"]
+        usr(["A001 Trigger: For a selected file<br/>run on a Draft Proposals file"]):::trigger
+        main["Main cloud flow: Proposal Approval<br/>A002 to A195 in scopes"]:::mainflow
+        subgraph EV["Environment variables"]
+            direction LR
+            ev1["ev_ProjectsSiteUrl<br/>today /Divisions/PDD/Projects"]:::variable
+            ev2["ev_DivisionsSiteUrl<br/>today http://portal/Divisions"]:::variable
+            ev3["ev_ProposalsUrl<br/>today http://portal/Divisions/Proposals/"]:::variable
+        end
+        subgraph CFS["Child flows, called with Run a Child Flow"]
+            cf1["CF Check Signatures<br/>A004, responds first"]:::childflow
+            cf2["CF Proposal Checker<br/>A048"]:::childflow
+            cf3["CF Generate PDF<br/>A184"]:::childflow
+            cf4["CF Delegate Lookup<br/>A032, A081, A119, APPROVAL REQUEST"]:::childflow
+            cf5["CF Admin Officer Lookup<br/>A158"]:::childflow
+        end
+    end
+
+    subgraph SPP["SharePoint site ev_ProjectsSiteUrl"]
+        dp["Draft Proposals library<br/>content approval enabled"]:::sharepoint
+    end
+
+    subgraph SPD["SharePoint site ev_DivisionsSiteUrl"]
+        mc["Master Contacts<br/>A009, A024, A027, A076, A106"]:::sharepoint
+        cal["Master Calendar"]:::sharepoint
+        cl["Clients<br/>A019, A113, A153"]:::sharepoint
+        si["Sites<br/>A020, A071, A115, A155"]:::sharepoint
+        pr["Proposals library<br/>A185, A191, A193"]:::sharepoint
+    end
+
+    subgraph M365["Microsoft 365 services"]
+        direction LR
+        apr["Approvals: Start and wait for an approval<br/>A055, A091, A131"]:::approval
+        tms["Teams: Post adaptive card and wait<br/>A167, A176"]:::email
+        out["Outlook: Send an email (V2)<br/>A147, A161, A191, A193, A167, A176"]:::email
+    end
+
+    gw["Lists still on SharePoint Server 2016:<br/>on-premises data gateway, premium"]:::note
+
+    usr -->|"item ID, comments,<br/>user e-mail and name"| main
+    EV -.->|"site URLs, PDF URL prefix"| main
+
+    main -->|"starts, no wait"| cf1
+    main -->|"waits"| cf2
+    main -->|"waits"| cf3
+    main -->|"position no. in,<br/>delegate out"| cf4
+    main -->|"Division, Role in,<br/>AO out"| cf5
+
+    main <-->|"reads item, writes columns<br/>and approval status"| dp
+    main -->|"reads names, positions"| mc
+    main -->|"reads Customer"| cl
+    main -->|"reads Country"| si
+    main -->|"reads PDF name and file"| pr
+
+    main -->|"approval requests,<br/>AO number cards, e-mails"| M365
+
+    cf1 -.->|"own Nintex export"| dp
+    cf2 -.->|"own Nintex export"| dp
+    cf3 -.->|"writes PDF, to confirm"| pr
+    cf4 -.->|"INFERRED: delegate entry<br/>EventDate le now le EndDate"| cal
+    cf4 -.->|"INFERRED: delegate details"| mc
+    cf5 -.->|"INFERRED: AO by<br/>Division and Role"| mc
+    cf5 -.->|"INFERRED: AO delegate"| cal
+
+    SPD -.- gw
+    SPP -.- gw
+
+    class SOL,CFS,EV scope
+    class SPP,SPD site
+    class M365 svc

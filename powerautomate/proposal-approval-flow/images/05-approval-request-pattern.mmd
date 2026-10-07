@@ -1,0 +1,72 @@
+---
+config:
+  flowchart:
+    useMaxWidth: false
+---
+flowchart TD
+    %% Render note: Axxx stands for A055, A091 or A131. Internals are INFERRED, inputs and outputs are from the export.
+    classDef sharepoint fill:#b2dfdb,stroke:#00796b,color:#00332e
+    classDef approval fill:#d1c4e9,stroke:#5e35b1,stroke-width:2px,color:#1f0f4d
+    classDef condition fill:#ffe082,stroke:#e69500,color:#3e2700
+    classDef childflow fill:#eeeeee,stroke:#616161,stroke-width:2px,stroke-dasharray:6 4,color:#212121
+    classDef variable fill:#f5f5f5,stroke:#9e9e9e,color:#212121
+    classDef note fill:#fff3e0,stroke:#d84315,stroke-width:2px,stroke-dasharray:4 3,color:#4e1a00
+    classDef endpoint fill:#37474f,stroke:#102027,color:#ffffff
+    classDef io fill:#ffffff,stroke:#78909c,stroke-dasharray:3 3,color:#263238
+    classDef scope fill:#f4f8fb,stroke:#78909c,color:#263238
+    classDef inputs fill:#fafafa,stroke:#b0bec5,color:#263238
+
+    caller(["Main flow reaches A055, A091 or A131<br/>Axxx below stands for that action ID"]):::endpoint
+
+    subgraph IN["Inputs, from the export"]
+        direction TB
+        in1["Initiator<br/>= initiator e-mail"]:::io
+        in2["Initiator Comments<br/>= InitiatorsComments"]:::io
+        in3["IsTopLevel<br/>= False"]:::io
+        in4["Item Name<br/>= Proposal"]:::io
+        in5["Message<br/>= varMessage"]:::io
+        in6["Position Number<br/>A055 VarapplicantSup<br/>A091 varApproverPositionNo<br/>A131 varManagerPositionNo"]:::io
+        in7["Subject<br/>= varApprovalLine"]:::io
+    end
+
+    subgraph SC["Axxx Scope APPROVAL REQUEST – internals INFERRED"]
+        a1["Axxx Compose Inputs<br/>the 7 input values"]:::variable
+        a2["Axxx Get items Master Contacts<br/>Position_x0020_Number<br/>eq Position Number"]:::sharepoint
+        a3["Axxx Compose Approver: FullName1,<br/>Position_x0020_Desciprion, account"]:::variable
+        a4["Axxx Run a Child Flow<br/>CF Delegate Lookup: Position<br/>Number in, Delegate out"]:::childflow
+        a5["Axxx Start and wait for an approval<br/>Approve/Reject – First to respond"]:::approval
+        d5["Assigned to approver and delegate<br/>Title Subject, Details Message"]:::io
+        k6{"Axxx Condition<br/>Outcome<br/>= Approve"}:::condition
+        y6["Axxx Set variable<br/>varApprovalStatus<br/>= Approved"]:::variable
+        n6["Axxx Set variable<br/>varApprovalStatus<br/>= Rejected"]:::variable
+        subgraph OUT["Remaining outputs, from the export"]
+            direction LR
+            o1["Axxx Set variable<br/>varApprovedBy<br/>Approved By: responder"]:::variable
+            o2["Axxx Set variable<br/>varApproversName<br/>ApproversName: name"]:::variable
+            o3["Axxx Set variable<br/>varApprovalDate<br/>Approval Date: responseDate"]:::variable
+            o4["Axxx Set variable<br/>varApprovalComments<br/>Approval Comments: comments"]:::variable
+            o5["Axxx Set variable<br/>varApproverPosition<br/>ApprovedBy Position"]:::variable
+            o6["Axxx Set variable<br/>varApproverPositionNo<br/>ApprovedBy Position No"]:::variable
+            o1 --> o2 --> o3 --> o4 --> o5 --> o6
+        end
+    end
+
+    inf["INFERRED: confirm against<br/>the exported UDA: Manage<br/>User Defined Actions, Export"]:::note
+    why["Inline Scope, not a child flow:<br/>child flows must respond in 120 s"]:::note
+    back(["Back to the main flow:<br/>Axxx REFRESH ITEM, then<br/>A056, A092 or A132"]):::endpoint
+
+    caller --> IN
+    IN --> a1
+    a1 --> a2 --> a3 --> a4 --> a5 --> k6
+    a5 -.- d5
+    k6 -->|"Yes"| y6
+    k6 -->|"No"| n6
+    y6 --> OUT
+    n6 --> OUT
+    OUT --> back
+    SC -.- inf
+    SC -.- why
+
+    class SC scope
+    class OUT scope
+    class IN inputs

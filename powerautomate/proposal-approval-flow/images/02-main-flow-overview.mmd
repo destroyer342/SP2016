@@ -1,0 +1,156 @@
+---
+config:
+  flowchart:
+    useMaxWidth: false
+    rankSpacing: 24
+    nodeSpacing: 22
+---
+flowchart TD
+    %% Render note: dashed grey boxes are layout rows, run left to right. Yes = If yes = Nintex second branch, condition TRUE.
+    classDef trigger fill:#0b3d91,stroke:#06245a,stroke-width:2px,color:#ffffff
+    classDef sharepoint fill:#b2dfdb,stroke:#00796b,color:#00332e
+    classDef approval fill:#d1c4e9,stroke:#5e35b1,stroke-width:2px,color:#1f0f4d
+    classDef email fill:#bbdefb,stroke:#1565c0,color:#0d2c54
+    classDef condition fill:#ffe082,stroke:#e69500,color:#3e2700
+    classDef childflow fill:#eeeeee,stroke:#616161,stroke-width:2px,stroke-dasharray:6 4,color:#212121
+    classDef variable fill:#f5f5f5,stroke:#9e9e9e,color:#212121
+    classDef terminate fill:#d32f2f,stroke:#8e0000,stroke-width:2px,color:#ffffff
+    classDef endpoint fill:#37474f,stroke:#102027,color:#ffffff
+    classDef scope fill:#f4f8fb,stroke:#78909c,color:#263238
+    classDef yesbranch fill:#f1f8e9,stroke:#7cb342,color:#33691e
+    classDef nobranch fill:#fdecea,stroke:#e57373,color:#b71c1c
+    classDef row fill:none,stroke:#b0bec5,stroke-dasharray:2 4
+
+    t001(["A001 Trigger: For a selected file<br/>input Initiator's Comments"]):::trigger
+
+    subgraph row0[" "]
+        direction LR
+        v001["A001 Initialize variable<br/>32 Nintex variables<br/>plus 3 helpers"]:::variable
+        w002["A002 Do until not<br/>checked out: REFRESH<br/>ITEM, Delay 5 min"]:::sharepoint
+        c004["A004 Signatures:<br/>Run a Child Flow<br/>CF Check Signatures"]:::childflow
+        v001 --> w002 --> c004
+    end
+
+    subgraph s005["A005 Scope Approval Variables"]
+        direction LR
+        a007["A007 Scope Query<br/>CI's Profile: A009<br/>Master Contacts"]:::sharepoint
+        a011["A011 Scope Proposal<br/>Title: A013 SET FIELD,<br/>A015 A016 subjects"]:::sharepoint
+        a017["A017 Scope SAP No.<br/>A019 Clients, A020<br/>Sites: Get items"]:::sharepoint
+        a022["A022 e-mail Message<br/>Set variable<br/>varMessage"]:::variable
+        a024["A024 to A028 Get items<br/>Master Contacts: first<br/>approver, varSupervisor"]:::sharepoint
+        a029["A029 Scope Query<br/>Approver's Delegate<br/>A032 CF Delegate Lookup"]:::childflow
+        a007 --> a011 --> a017 --> a022 --> a024 --> a029
+    end
+
+    subgraph s042["A042 Scope Request Approval"]
+        k044{"A044 Condition<br/>Checker Approval?<br/>Checker<br/>is not empty"}:::condition
+        c048["A048 Start workflow:<br/>Run a Child Flow<br/>CF Proposal Checker"]:::childflow
+        r049["A049 REFRESH ITEM<br/>Get file properties,<br/>Set variable varItem"]:::sharepoint
+        k049{"A049 Condition<br/>Approved?<br/>ModerationStatus<br/>ne Rejected"}:::condition
+        x051["A051 End workflow:<br/>Terminate"]:::terminate
+        subgraph s049y["A049 Condition Approved? – If yes"]
+            p055["A053 to A064 Supervisor level<br/>A055 Scope APPROVAL REQUEST<br/>(Supervisor)"]:::approval
+            k065{"A065 Condition<br/>Value(R) gt 100k<br/>Value(R) gt 100000<br/>OR GM Approval<br/>Required"}:::condition
+            subgraph s065y["A065 Condition Value(R) gt 100k – If yes"]
+                k067{"A067 Condition<br/>Request Next Level<br/>Approval: Approved<br/>AND title<br/>ne Manager"}:::condition
+                subgraph s067y["A067 Condition Request Next Level Approval – If yes"]
+                    p091["A069 to A100 Divisional Manager<br/>level, A091 Scope APPROVAL<br/>REQUEST (Manager)"]:::approval
+                    k101{"A101 Condition<br/>Value (R) gt R5m<br/>(Approved AND<br/>ge 5000000) OR<br/>GM Approval Req."}:::condition
+                    subgraph s101y["A101 Condition Value (R) gt R5m – If yes"]
+                        a104["A103 to A108 General<br/>Manager's Profile: A106<br/>Get items Master Contacts"]:::sharepoint
+                        k109{"A109 Condition<br/>GM has not Approved<br/>varApprovedBy<br/>ne varApprover"}:::condition
+                        subgraph s109y["A109 Condition GM has not Approved – If yes"]
+                            p131["A111 to A142 General Manager<br/>level, A131 Scope APPROVAL<br/>REQUEST (GM)"]:::approval
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    subgraph s143["A143 Scope Request Proposal/Revision No."]
+        k145{"A145 Condition<br/>Approved?<br/>varApprovalStatus<br/>= Approved"}:::condition
+        subgraph s145n["A145 Condition Approved? – If no"]
+            direction LR
+            e147["A147 Notify Initiator<br/>Send an email (V2)<br/>The Proposal has been Rejected"]:::email
+            m149["A149 Rejected: Set content<br/>approval status: Reject"]:::sharepoint
+            e147 --> m149
+        end
+        subgraph s145y["A145 Condition Approved? – If yes"]
+            subgraph rowY[" "]
+                direction LR
+                a151["A151 Scope Action set<br/>A153 Clients, A155 Sites<br/>A157 varMessage"]:::sharepoint
+                c158["A158 AO with DELEGATE<br/>UDA: Run a Child Flow<br/>CF Admin Officer Lookup"]:::childflow
+                a151 --> c158
+            end
+            k159{"A159 Condition<br/>AO EXISTS<br/>varAO<br/>is not empty"}:::condition
+            e161["A161 NOTIFY INITIATOR<br/>Send an email (V2)<br/>no Admin Officer"]:::email
+            subgraph s159y["A159 Condition AO EXISTS – If yes"]
+                k164{"A164 Condition<br/>Proposal No. Exists<br/>Proposal No.<br/>is not empty"}:::condition
+                n167["A166 to A173 new Proposal No.<br/>Teams card to AO, SET FIELD"]:::email
+                n176["A175 to A183 Revision No.<br/>Teams card to AO, SET FIELD"]:::email
+                subgraph rowP[" "]
+                    direction LR
+                    c184["A184 Generate PDF:<br/>Run a Child Flow<br/>CF Generate PDF"]:::childflow
+                    a185["A185 to A188 Get items<br/>Proposals, build<br/>varApprovedProposal"]:::sharepoint
+                    c184 --> a185
+                end
+                k189{"A189 Condition<br/>Notify All<br/>varPositionTitle<br/>= Head"}:::condition
+                e191["A191 Send an email (V2)<br/>Initiator and AO<br/>CC varSupervisor"]:::email
+                e193["A193 Send an email (V2)<br/>Initiator and AO"]:::email
+            end
+            subgraph rowZ[" "]
+                direction LR
+                f194["A194 Workflow State:<br/>SET FIELD has been<br/>Approved"]:::sharepoint
+                m195["A195 Approved: Set<br/>content approval<br/>status: Approve"]:::sharepoint
+                f194 --> m195
+            end
+        end
+    end
+
+    endR(["End – rejected"]):::endpoint
+    endA(["End – approved"]):::endpoint
+
+    t001 --> row0
+    row0 --> s005
+    s005 --> k044
+    k044 -->|"Yes"| c048
+    k044 -->|"No"| r049
+    c048 --> r049
+    r049 --> k049
+    k049 -->|"No"| x051
+    k049 -->|"Yes"| p055
+    p055 --> k065
+    k065 -->|"Yes"| k067
+    k067 -->|"Yes"| p091
+    p091 --> k101
+    k101 -->|"Yes"| a104
+    a104 --> k109
+    k109 -->|"Yes"| p131
+    k065 -->|"No"| k145
+    k067 -->|"No"| k145
+    k101 -->|"No"| k145
+    k109 -->|"No"| k145
+    p131 --> k145
+    k145 -->|"No"| s145n
+    s145n --> endR
+    k145 -->|"Yes"| rowY
+    rowY --> k159
+    k159 -->|"No"| e161
+    e161 --> rowZ
+    k159 -->|"Yes"| k164
+    k164 -->|"No"| n167
+    k164 -->|"Yes"| n176
+    n167 --> rowP
+    n176 --> rowP
+    rowP --> k189
+    k189 -->|"No"| e191
+    k189 -->|"Yes"| e193
+    e191 --> rowZ
+    e193 --> rowZ
+    rowZ --> endA
+
+    class s005,s042,s143 scope
+    class s049y,s065y,s067y,s101y,s109y,s145y,s159y yesbranch
+    class s145n nobranch
+    class row0,rowY,rowP,rowZ row

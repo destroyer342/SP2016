@@ -1,0 +1,183 @@
+---
+config:
+  flowchart:
+    useMaxWidth: false
+    rankSpacing: 24
+    nodeSpacing: 22
+---
+flowchart TD
+    %% Render note: dashed grey boxes are layout rows, run left to right. Yes = If yes = Nintex second branch, condition TRUE.
+    classDef sharepoint fill:#b2dfdb,stroke:#00796b,color:#00332e
+    classDef email fill:#bbdefb,stroke:#1565c0,color:#0d2c54
+    classDef condition fill:#ffe082,stroke:#e69500,color:#3e2700
+    classDef childflow fill:#eeeeee,stroke:#616161,stroke-width:2px,stroke-dasharray:6 4,color:#212121
+    classDef variable fill:#f5f5f5,stroke:#9e9e9e,color:#212121
+    classDef note fill:#fff3e0,stroke:#d84315,stroke-width:2px,stroke-dasharray:4 3,color:#4e1a00
+    classDef endpoint fill:#37474f,stroke:#102027,color:#ffffff
+    classDef scope fill:#f4f8fb,stroke:#78909c,color:#263238
+    classDef yesbranch fill:#f1f8e9,stroke:#7cb342,color:#33691e
+    classDef nobranch fill:#fdecea,stroke:#e57373,color:#b71c1c
+    classDef row fill:none,stroke:#b0bec5,stroke-dasharray:2 4
+
+    in142(["From A042 Scope<br/>Request Approval"]):::endpoint
+
+    subgraph s143["A143 Scope Request Proposal/Revision No."]
+        k145{"A145 Condition<br/>Approved?<br/>varApprovalStatus<br/>= Approved"}:::condition
+
+        subgraph s145n["A145 Condition Approved? – If no"]
+            direction LR
+            e147["A147 Notify Initiator<br/>Send an email (V2)<br/>To Initiator, Rejected"]:::email
+            r149["A149 REFRESH ITEM<br/>fresh ETag"]:::sharepoint
+            m149["A149 Rejected: Set<br/>content approval status<br/>Reject, Comments"]:::sharepoint
+            e147 --> r149 --> m149
+        end
+
+        subgraph s145y["A145 Condition Approved? – If yes"]
+            subgraph rowY[" "]
+                direction LR
+                subgraph s151["A151 Scope Action set"]
+                    direction LR
+                    q153["A153 Query SAP No.<br/>Get items Clients<br/>varCustomer"]:::sharepoint
+                    q155["A155 Query Site Name<br/>and Country: Get items<br/>Sites, varCountry"]:::sharepoint
+                    v157["A157 Message<br/>Set variable<br/>varMessage"]:::variable
+                    q153 --> q155 --> v157
+                end
+                c158["A158 AO with DELEGATE<br/>UDA: CF Admin Officer<br/>Lookup, output varAO"]:::childflow
+                s151 --> c158
+            end
+            k159{"A159 Condition<br/>AO EXISTS<br/>varAO<br/>is not empty"}:::condition
+            subgraph s159n["A159 Condition AO EXISTS – If no"]
+                e161["A161 NOTIFY INITIATOR<br/>Send an email (V2) ADMIN<br/>OFFICER ERROR IN PROPOSALS"]:::email
+            end
+
+            subgraph s159y["A159 Condition AO EXISTS – If yes"]
+                subgraph rowA[" "]
+                    direction LR
+                    v163["A163 AO: Set variable<br/>varAOName = display<br/>name of varAO"]:::variable
+                    r164["A164 REFRESH ITEM<br/>before A164"]:::sharepoint
+                    v163 --> r164
+                end
+                k164{"A164 Condition<br/>Proposal No. Exists<br/>Proposal No.<br/>is not empty"}:::condition
+
+                subgraph s164n["A164 Condition Proposal No. Exists – If no"]
+                    subgraph rowN1[" "]
+                        direction LR
+                        f166["A166 Workflow Status:<br/>SET FIELD Waiting for<br/>varAOName, Proposal No."]:::sharepoint
+                        e167["A167 Request data:<br/>Send an email (V2)<br/>task notice to varAO"]:::email
+                        t167["A167 Request data: Post<br/>adaptive card and wait<br/>for a response, varAO"]:::email
+                        f166 --> e167 --> t167
+                    end
+                    subgraph rowN2[" "]
+                        direction LR
+                        v167["A167 Set variables<br/>varProposalNumber,<br/>varAOComments"]:::variable
+                        l168["A168 Log: Compose<br/>varProposalNumber"]:::variable
+                        v167 --> l168
+                    end
+                    k169{"A169 Condition<br/>Proposal No. has<br/>been Assigned<br/>varProposalNumber<br/>is not empty"}:::condition
+                    subgraph s169y["A169 Condition Proposal No. has been Assigned – If yes"]
+                        direction LR
+                        f171["A171 Proposal No.:<br/>SET FIELD Proposal No.,<br/>Proposal Number, Reference"]:::sharepoint
+                        f173["A173 Workflow State:<br/>SET FIELD Proposal No.<br/>created by varAOName"]:::sharepoint
+                        f171 --> f173
+                    end
+                end
+
+                subgraph s164y["A164 Condition Proposal No. Exists – If yes"]
+                    subgraph rowR1[" "]
+                        direction LR
+                        f175["A175 Workflow Status:<br/>SET FIELD Waiting for<br/>varAOName, Revised No."]:::sharepoint
+                        e176["A176 Request data:<br/>Send an email (V2)<br/>task notice to varAO"]:::email
+                        t176["A176 Request data: Post<br/>adaptive card and wait<br/>for a response, varAO"]:::email
+                        f175 --> e176 --> t176
+                    end
+                    subgraph rowR2[" "]
+                        direction LR
+                        v176["A176 Set variables<br/>varRevision,<br/>varAOComments"]:::variable
+                        l177["A177 Log: Compose<br/>varRevision"]:::variable
+                        v176 --> l177
+                    end
+                    k178{"A178 Condition<br/>Revision No. has<br/>been Assigned<br/>varRevision<br/>is not empty"}:::condition
+                    subgraph s178y["A178 Condition Revision No. has been Assigned – If yes"]
+                        direction LR
+                        v180["A180 Set variable<br/>varRevision = trim of<br/>replace spaces"]:::variable
+                        f181["A181 Proposal No.:<br/>SET FIELD Proposal No.,<br/>Reference"]:::sharepoint
+                        f183["A183 Workflow State:<br/>SET FIELD Revision No.<br/>created by varAOName"]:::sharepoint
+                        v180 --> f181 --> f183
+                    end
+                end
+
+                subgraph rowP[" "]
+                    direction LR
+                    c184["A184 Generate PDF:<br/>Run a Child Flow<br/>CF Generate PDF"]:::childflow
+                    r185["A185 REFRESH ITEM<br/>before A185"]:::sharepoint
+                    q185["A185 Approved Proposals<br/>Get items Proposals: No.<br/>and FileLeafRef = Title"]:::sharepoint
+                    v187["A187 Proposal Name<br/>varApprovedProposal =<br/>ev_ProposalsUrl plus name"]:::variable
+                    l188["A188 Log: Compose<br/>Proposal No., PDF URL"]:::variable
+                    c184 --> r185 --> q185 --> v187 --> l188
+                end
+                k189{"A189 Condition<br/>Notify All<br/>varPositionTitle<br/>= Head"}:::condition
+                subgraph s189n["A189 Condition Notify All – If no"]
+                    direction LR
+                    g191["A191 Get file content<br/>using path, only if<br/>the PDF exists"]:::sharepoint
+                    e191["A191 Notify Initiator, AO<br/>and Head: Send an email<br/>(V2), CC varSupervisor"]:::email
+                    g191 --> e191
+                end
+                subgraph s189y["A189 Condition Notify All – If yes"]
+                    direction LR
+                    g193["A193 Get file content<br/>using path, only if<br/>the PDF exists"]:::sharepoint
+                    e193["A193 Notify Initiator<br/>and AO: Send an email<br/>(V2), no CC"]:::email
+                    g193 --> e193
+                end
+            end
+
+            subgraph rowZ[" "]
+                direction LR
+                f194["A194 Workflow State:<br/>SET FIELD Proposal<br/>has been Approved"]:::sharepoint
+                r195["A195 REFRESH ITEM<br/>fresh ETag"]:::sharepoint
+                m195["A195 Approved: Set<br/>content approval status<br/>Approve, Comments"]:::sharepoint
+                f194 --> r195 --> m195
+            end
+        end
+    end
+
+    i13["Parity note I13: reproduced<br/>as-is, anything but exactly<br/>Approved takes If no"]:::note
+    i03["Parity note I03: reproduced<br/>as-is, A194 and A195 run<br/>even with no AO"]:::note
+
+    endR(["End – rejected"]):::endpoint
+    endA(["End – approved"]):::endpoint
+
+    in142 --> k145
+    k145 -->|"No"| s145n
+    s145n --> endR
+    k145 -->|"Yes"| rowY
+    rowY --> k159
+    k159 -->|"No"| e161
+    e161 --> rowZ
+    k159 -->|"Yes"| rowA
+    rowA --> k164
+    k164 -->|"No"| rowN1
+    rowN1 --> rowN2
+    rowN2 --> k169
+    k169 -->|"Yes"| s169y
+    k169 -->|"No"| rowP
+    s169y --> rowP
+    k164 -->|"Yes"| rowR1
+    rowR1 --> rowR2
+    rowR2 --> k178
+    k178 -->|"Yes"| s178y
+    k178 -->|"No"| rowP
+    s178y --> rowP
+    rowP --> k189
+    k189 -->|"No"| s189n
+    k189 -->|"Yes"| s189y
+    s189n --> rowZ
+    s189y --> rowZ
+    rowZ --> endA
+
+    k145 -.- i13
+    rowZ -.- i03
+
+    class s143,s151 scope
+    class s145y,s159y,s164y,s169y,s178y,s189y yesbranch
+    class s145n,s159n,s164n,s189n nobranch
+    class rowY,rowA,rowN1,rowN2,rowR1,rowR2,rowP,rowZ row

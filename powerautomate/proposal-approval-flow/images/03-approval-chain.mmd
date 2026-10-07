@@ -1,0 +1,250 @@
+---
+config:
+  flowchart:
+    useMaxWidth: false
+    rankSpacing: 24
+    nodeSpacing: 22
+---
+flowchart TD
+    %% Render note: keep the 2x PNG under about 16000 px tall and 130 Mpx, the Chromium capture limit. Dashed grey boxes are layout rows, run left to right.
+    classDef sharepoint fill:#b2dfdb,stroke:#00796b,color:#00332e
+    classDef approval fill:#d1c4e9,stroke:#5e35b1,stroke-width:2px,color:#1f0f4d
+    classDef condition fill:#ffe082,stroke:#e69500,color:#3e2700
+    classDef condrows fill:#fff8e1,stroke:#e69500,stroke-dasharray:3 3,color:#3e2700
+    classDef childflow fill:#eeeeee,stroke:#616161,stroke-width:2px,stroke-dasharray:6 4,color:#212121
+    classDef variable fill:#f5f5f5,stroke:#9e9e9e,color:#212121
+    classDef terminate fill:#d32f2f,stroke:#8e0000,stroke-width:2px,color:#ffffff
+    classDef note fill:#fff3e0,stroke:#d84315,stroke-width:2px,stroke-dasharray:4 3,color:#4e1a00
+    classDef endpoint fill:#37474f,stroke:#102027,color:#ffffff
+    classDef scope fill:#f4f8fb,stroke:#78909c,color:#263238
+    classDef yesbranch fill:#f1f8e9,stroke:#7cb342,color:#33691e
+    classDef nobranch fill:#fdecea,stroke:#e57373,color:#b71c1c
+    classDef row fill:none,stroke:#b0bec5,stroke-dasharray:2 4
+
+    in005(["From A005 Scope<br/>Approval Variables"]):::endpoint
+
+    subgraph s042["A042 Scope Request Approval"]
+        k044{"A044 Condition<br/>Checker Approval?<br/>Checker<br/>is not empty"}:::condition
+        subgraph s044y["A044 Condition Checker Approval? – If yes"]
+            c048["A048 Start workflow:<br/>Run a Child Flow<br/>CF Proposal Checker"]:::childflow
+        end
+        r049["A049 REFRESH ITEM<br/>Get file properties,<br/>Set variable varItem"]:::sharepoint
+        k049{"A049 Condition<br/>Approved?<br/>ModerationStatus<br/>ne Rejected"}:::condition
+        subgraph s049n["A049 Condition Approved? – If no"]
+            x051["A051 End workflow:<br/>Terminate"]:::terminate
+        end
+
+        subgraph s049y["A049 Condition Approved? – If yes"]
+            subgraph row1[" "]
+                direction LR
+                f053["A053 Workflow Status:<br/>SET FIELD Waiting for<br/>varApproversList"]:::sharepoint
+                p055["A055 Scope APPROVAL<br/>REQUEST (Supervisor)<br/>VarapplicantSup"]:::approval
+                r055["A055 REFRESH ITEM<br/>after the scope"]:::sharepoint
+                f056["A056 Workflow State:<br/>SET FIELD was Status<br/>by Position"]:::sharepoint
+                f053 --> p055 --> r055 --> f056
+            end
+            k057{"A057 Condition<br/>Run if<br/>varApprovalStatus<br/>= Approved"}:::condition
+            subgraph s057y["A057 Condition Run if – If yes"]
+                k059{"A059 Condition<br/>delegate?<br/>varApprovedBy<br/>ne varSupervisor"}:::condition
+                f061["A061 document approver<br/>SET FIELD State, Approver,<br/>Date, Designation"]:::sharepoint
+                f063["A063 document approver<br/>SET FIELD same, Designation<br/>= Position(Delegated)"]:::sharepoint
+            end
+            r065["A065 REFRESH ITEM<br/>before A065"]:::sharepoint
+            k065{"A065 Condition<br/>Value(R) gt 100k<br/>row 1 OR row 2"}:::condition
+
+            subgraph s065y["A065 Condition Value(R) gt 100k – If yes"]
+                k067{"A067 Condition<br/>Request Next Level<br/>Approval<br/>row 1 AND row 2"}:::condition
+
+                subgraph s067y["A067 Condition Request Next Level Approval – If yes"]
+                    subgraph rowA[" "]
+                        direction LR
+                        subgraph s069["A069 Scope Action set"]
+                            direction LR
+                            q071["A071 Query Site Name<br/>and Country: Get items<br/>Sites, varCountry"]:::sharepoint
+                            v073["A073 Message<br/>Set variable<br/>varMessage"]:::variable
+                            q071 --> v073
+                        end
+                        subgraph s074["A074 Scope Query Next Approver and Divisional Manager's Profile"]
+                            direction LR
+                            q076["A076 Query Divisional<br/>Manager: Get items, Title<br/>contains Manager, SBU PDD"]:::sharepoint
+                            l078["A078 Log: Compose<br/>Divisional Manager"]:::variable
+                            v079["A079 build approver's<br/>list: Set variable<br/>varApproversList"]:::variable
+                            q076 --> l078 --> v079
+                        end
+                        s069 --> s074
+                    end
+                    subgraph row2[" "]
+                        direction LR
+                        v080["A080 Set variable<br/>varDelegate<br/>= varEmpty"]:::variable
+                        c081["A081 Delegate UDA:<br/>CF Delegate Lookup<br/>varApproverPositionNo"]:::childflow
+                        v080 --> c081
+                    end
+                    k082{"A082 Condition<br/>varDelegate<br/>is not empty"}:::condition
+                    subgraph s082y["A082 Condition – If yes"]
+                        k085{"A085 Condition<br/>varApprover<br/>is not empty"}:::condition
+                        v087["A087 Set variable<br/>varApproversList =<br/>varDelegatePosition"]:::variable
+                        v089["A089 Set variable<br/>varApproversList =<br/>Position Or Delegate"]:::variable
+                    end
+                    subgraph row3[" "]
+                        direction LR
+                        f090["A090 Workflow State:<br/>SET FIELD Waiting for<br/>varApproversList"]:::sharepoint
+                        p091["A091 Scope APPROVAL<br/>REQUEST (Manager)<br/>varApproverPositionNo"]:::approval
+                        r091["A091 REFRESH ITEM<br/>after the scope"]:::sharepoint
+                        f092["A092 Workflow State:<br/>SET FIELD was Status<br/>by Position"]:::sharepoint
+                        f090 --> p091 --> r091 --> f092
+                    end
+                    k093{"A093 Condition<br/>Run if<br/>varApprovalStatus<br/>= Approved"}:::condition
+                    subgraph s093y["A093 Condition Run if – If yes"]
+                        k095{"A095 Condition<br/>varApprover<br/>ne varApprovedBy"}:::condition
+                        f097["A097 Document Approver<br/>SET FIELD Approver,<br/>Date, Designation"]:::sharepoint
+                        f099["A099 Document Approver<br/>SET FIELD same, Designation<br/>= Position(Delegated)"]:::sharepoint
+                    end
+                    r101["A101 REFRESH ITEM<br/>before A101"]:::sharepoint
+                    k101{"A101 Condition<br/>Value (R) gt R5m<br/>AND group<br/>OR row 3"}:::condition
+
+                    subgraph s101y["A101 Condition Value (R) gt R5m – If yes"]
+                        subgraph rowB[" "]
+                            direction LR
+                            v103["A103 Set variable<br/>varApprover<br/>= varEmpty"]:::variable
+                            subgraph s104["A104 Scope General Manager's Profile"]
+                                direction LR
+                                q106["A106 Query GM's Profile<br/>Get items Master Contacts<br/>varManagerPositionNo"]:::sharepoint
+                                l108["A108 Log: Compose<br/>General Manager"]:::variable
+                                q106 --> l108
+                            end
+                            v103 --> s104
+                        end
+                        k109{"A109 Condition<br/>GM has not Approved<br/>varApprovedBy<br/>ne varApprover"}:::condition
+
+                        subgraph s109y["A109 Condition IF, General Manager has not Approved the Project – If yes"]
+                            subgraph s111["A111 Scope Action set"]
+                                direction LR
+                                q113["A113 Query SAP No.<br/>Get items Clients<br/>varCustomer"]:::sharepoint
+                                q115["A115 Query Site Name<br/>and Country: Get items<br/>Sites, varCountry"]:::sharepoint
+                                v117["A117 Message<br/>Set variable<br/>varMessage"]:::variable
+                                q113 --> q115 --> v117
+                            end
+                            subgraph row4[" "]
+                                direction LR
+                                v118["A118 build approver's<br/>list: Set variable<br/>varApproversList"]:::variable
+                                c119["A119 Delegate UDA:<br/>CF Delegate Lookup<br/>varManagerPositionNo"]:::childflow
+                                v118 --> c119
+                            end
+                            k120{"A120 Condition<br/>build approver's list<br/>varDelegate<br/>is not empty"}:::condition
+                            subgraph s120y["A120 Condition build approver's list – If yes"]
+                                k122{"A122 Condition<br/>varDelegate<br/>is not empty"}:::condition
+                                subgraph s122y["A122 Condition – If yes"]
+                                    k125{"A125 Condition<br/>varApprover<br/>is not empty"}:::condition
+                                    v127["A127 Set variable<br/>varApproversList =<br/>varDelegatePosition"]:::variable
+                                    v129["A129 Set variable<br/>varApproversList =<br/>Position Or Delegate"]:::variable
+                                end
+                            end
+                            subgraph row5[" "]
+                                direction LR
+                                f130["A130 Workflow State:<br/>SET FIELD Waiting for<br/>varApproversList"]:::sharepoint
+                                p131["A131 Scope APPROVAL<br/>REQUEST (GM)<br/>varManagerPositionNo"]:::approval
+                                r131["A131 REFRESH ITEM<br/>after the scope"]:::sharepoint
+                                f130 --> p131 --> r131
+                            end
+                            subgraph row6[" "]
+                                direction LR
+                                l132["A132 Log: Compose<br/>Approved by"]:::variable
+                                w133["A133 Do until not<br/>checked out: REFRESH<br/>ITEM, Delay 5 min"]:::sharepoint
+                                f134["A134 Workflow State:<br/>SET FIELD was Status<br/>by Position"]:::sharepoint
+                                l132 --> w133 --> f134
+                            end
+                            k135{"A135 Condition<br/>Run if<br/>varApprovalStatus<br/>= Approved"}:::condition
+                            subgraph s135y["A135 Condition Run if – If yes"]
+                                k137{"A137 Condition<br/>varApprover<br/>ne varApprovedBy"}:::condition
+                                f139["A139 Document Approver<br/>SET FIELD Approver,<br/>Date, Designation"]:::sharepoint
+                                f141["A141 Document Approver<br/>SET FIELD same, Designation<br/>= Position(Delegated)"]:::sharepoint
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    d065["A065 rows<br/>1 float(Value(R)) gt 100000<br/>2 GM Approval Required = true"]:::condrows
+    d067["A067 rows<br/>1 varApprovalStatus = Approved<br/>2 varPositionTitle ne Manager"]:::condrows
+    i01["Parity note I01: reproduced<br/>as-is, initiator titled Manager<br/>skips DM and GM"]:::note
+    d101["A101 AND group<br/>varApprovalStatus = Approved<br/>and float(Value(R)) ge 5000000"]:::condrows
+    d101b["A101 OR row 3<br/>GM Approval Required = true"]:::condrows
+    i02["Parity note I02: reproduced<br/>as-is, row 3 alone passes<br/>after a DM rejection"]:::note
+
+    out143(["To A143 Scope Request<br/>Proposal/Revision No."]):::endpoint
+
+    in005 --> k044
+    k044 -->|"Yes"| c048
+    k044 -->|"No"| r049
+    c048 --> r049
+    r049 --> k049
+    k049 -->|"No"| x051
+    k049 -->|"Yes"| row1
+    row1 --> k057
+    k057 -->|"Yes"| k059
+    k057 -->|"No"| r065
+    k059 -->|"No"| f061
+    k059 -->|"Yes"| f063
+    f061 --> r065
+    f063 --> r065
+    r065 --> k065
+    k065 -->|"No"| out143
+    k065 -->|"Yes"| k067
+    k067 -->|"No"| out143
+    k067 -->|"Yes"| rowA
+    rowA --> row2
+    row2 --> k082
+    k082 -->|"Yes"| k085
+    k082 -->|"No"| row3
+    k085 -->|"No"| v087
+    k085 -->|"Yes"| v089
+    v087 --> row3
+    v089 --> row3
+    row3 --> k093
+    k093 -->|"Yes"| k095
+    k093 -->|"No"| r101
+    k095 -->|"No"| f097
+    k095 -->|"Yes"| f099
+    f097 --> r101
+    f099 --> r101
+    r101 --> k101
+    k101 -->|"No"| out143
+    k101 -->|"Yes"| rowB
+    rowB --> k109
+    k109 -->|"No"| out143
+    k109 -->|"Yes"| s111
+    s111 --> row4
+    row4 --> k120
+    k120 -->|"Yes"| k122
+    k120 -->|"No"| row5
+    k122 -->|"Yes"| k125
+    k122 -->|"No (empty)"| row5
+    k125 -->|"No"| v127
+    k125 -->|"Yes"| v129
+    v127 --> row5
+    v129 --> row5
+    row5 --> row6
+    row6 --> k135
+    k135 -->|"Yes"| k137
+    k135 -->|"No"| out143
+    k137 -->|"No"| f139
+    k137 -->|"Yes"| f141
+    f139 --> out143
+    f141 --> out143
+
+    k065 -.- d065
+    k067 -.- d067
+    d067 ~~~ i01
+    k067 -.- i01
+    k101 -.- d101
+    d101 ~~~ d101b
+    k101 -.- d101b
+    d101b ~~~ i02
+    k101 -.- i02
+
+    class s042,s069,s074,s104,s111 scope
+    class s044y,s049y,s057y,s065y,s067y,s082y,s093y,s101y,s109y,s120y,s122y,s135y yesbranch
+    class s049n nobranch
+    class row1,rowA,row2,row3,rowB,row4,row5,row6 row
