@@ -2424,11 +2424,15 @@ The Yes branch of A145 (A150 onwards) is in the next section.
 **Where it goes.**
 
 - **A101–A142** go **inside the If yes branch of `A067 Request Next Level Approval`**, after `A093 Run if` (Stage 2a, step 40). Nintex nests the GM level there (A052 > A065 > A066 > A067 > A068 > A101). Keep that nesting, because it is defect I01.
-- **A143** is a top-level Scope, placed directly after the `A042 Request Approval` scope. It runs in every run that A051 did not end.
+- **A143** is a top-level Scope, placed directly after the `A042 Request Approval` scope. It runs in every run that A051 (or a platform guard) did not end.
 - **Nesting depth.** Power Automate allows at most 8 nested containers.
-  - The deepest actions here, A127 and A129, sit inside A042 > A065 > A067 > A101 > A109 > A120 > A122 > A125. That is exactly 8, but only if **A049 is built as a guard clause** (Foundation › Platform limits: A049 If no = A051 Terminate, If yes empty, and A053–A142 follow the condition inside A042).
-  - If A049's If yes holds A053–A142 instead, A127 and A129 sit inside 9 containers and the flow cannot be saved.
-  - If the designer still rejects the depth, use the A125 fallback in step 18. Its logic is the same.
+  - The deepest actions here sit inside exactly 8 containers, but only if **A049 is built as a guard clause** (Foundation › Platform limits: A049 If no = A051 Terminate, If yes empty, and A053–A142 follow the condition inside A042):
+    - A127 and A129: A042 > A065 > A067 > A101 > A109 > A120 > A122 > A125;
+    - the Terminate actions of the A139 and A141 platform guards: A042 > A065 > A067 > A101 > A109 > A135 > A137 > A139/A141 Check update.
+  - If A049's If yes holds A053–A142 instead, each of these sits inside 9 containers and the flow cannot be saved. The current Stage 2a draft puts A053–A100 there. In that layout:
+    - use the A125 fallback in step 18. Its logic is the same;
+    - leave out the A139 and A141 Check update guards. They are platform guards, not Nintex actions.
+  - If the designer still rejects the depth with the guard-clause layout, use the A125 fallback as well.
 
 ### Stage 2b: Conventions used in this stage
 
@@ -2442,7 +2446,7 @@ The Yes branch of A145 (A150 onwards) is in the next section.
   - **If yes** is the Nintex Yes branch (the second child). **If no** is the Nintex No branch (the first child).
   - For a Nintex *Run if*, If no stays empty.
 - **SET FIELD bodies** are entered as one expression (`concat` + `createArray` + `addProperty`), so that quotes and line breaks in values stay valid JSON.
-- **SET FIELD platform guard.** Each SET FIELD is followed by a guard that is not a Nintex action. It stops the run on a field error, as a failed Nintex update would:
+- **SET FIELD platform guard.** Each SET FIELD is followed by a guard that is not a Nintex action, wherever the nesting depth allows (see above). It stops the run on a field error, as a failed Nintex update would:
   - **Axxx Check update** · Condition `@contains(string(body('Axxx_<name>')), '"HasException":true')`
   - If yes: **Axxx Update failed** · Terminate, Status `Failed`, Message `@{string(body('Axxx_<name>'))}`
 - **Dates** are written in site-local time with `convertFromUtc(…, 'South Africa Standard Time', 'yyyy-MM-dd HH:mm')`. The time zone is assumed; use the site's regional setting.
@@ -2465,7 +2469,7 @@ The Yes branch of A145 (A150 onwards) is in the next section.
 | A131 (inside) | `{Link}` (the approval's item link) | A101 refresh |
 | A133 | `{IsCheckedOut}` | **A133 refreshes** (step 24): one before the loop, which is also the refresh after the A131 scope, and one in each loop pass |
 | A134 | `Site_x0020_Name` | The last A133 loop refresh (the "after A133" refresh) |
-| A147 | `{Link}` (`{Common:ItemUrl}`) | The most recent refresh on the path (A133, A101, A091, A065, A055 or A049). The link does not change during a run |
+| A147 | `{Link}` (`{Common:ItemUrl}`) | The most recent refresh on the path: A133 (A109 TRUE), A101 (A101 or A109 FALSE), A065 (A067 FALSE) or A055 (A065 FALSE). A later refresh always follows the A049 and A091 refreshes. The link does not change during a run |
 | A149 | `{ETag}`, `{ModerationStatus}` | **A149 refresh** (step 33), immediately before |
 
 Between each refresh and the reads that rely on it, no action writes those columns or waits for a person. Every other read in this stage is a variable.
@@ -2571,7 +2575,7 @@ float(if(empty(string(coalesce(variables('varItem')?['Value_x0028_R_x0029_'], ''
 > **Parity note (I17, I23):** reproduces two things:
 >
 > - The operator is GreaterThanOrEqual although the label says "> R5m", so exactly R5,000,000 goes to the GM.
-> - A blank Value(R) counts as 0, so only the GM flag can send a proposal with a blank value to the GM.
+> - A blank Value(R) counts as 0, so only the GM flag can send a proposal with a blank value to the GM. Confirm Nintex's handling of a blank value in the parity test.
 >
 > To fix later: align the label and the operator with the policy, and stop the run when Value(R) is blank.
 
@@ -2580,7 +2584,13 @@ float(if(empty(string(coalesce(variables('varItem')?['Value_x0028_R_x0029_'], ''
 - Name: `varApprover`. Value: `@{variables('varEmpty')}`.
 - Nintex assigns the Text variable `varEmpty` (ValueType Text) to the User variable `varApprover`. `varEmpty` is never assigned, so the result is `''`.
 
-> **Parity note (I22, I34):** reproduces the clearing with `varEmpty`, and that only `varApprover` is cleared before the GM lookup. `varApproverPosition`, `varDelegate` and `varDelegatePosition` keep their level-2 values. To fix later: clear every GM-level variable with an explicit `''`.
+> **Parity note (I22, I34, I10):** reproduces three things:
+>
+> - `varApprover` is cleared with `varEmpty`, a variable that is never assigned (I22).
+> - A Text value is assigned to the User variable `varApprover` (I34). Both are strings in Power Automate, so the type mismatch has no visible effect here.
+> - Only `varApprover` is cleared before the GM lookup (I10). `varApproverPosition` (A091's ApprovedBy Position), `varDelegate` and `varDelegatePosition` keep their level-2 values.
+>
+> To fix later: clear every GM-level variable with an explicit `''`.
 
 #### General Manager's profile (A104–A108)
 
@@ -2591,7 +2601,7 @@ float(if(empty(string(coalesce(variables('varItem')?['Value_x0028_R_x0029_'], ''
 **6. A106 Query GM's Profile** · SharePoint › Get items (QUERY)
 
 - Site Address: `ev_DivisionsSiteUrl`. The export's BaseUrl `http://Portal/Divisions` (no trailing slash) is the same web.
-- List Name: `Master Contacts`. Order By: `ID asc`. Top Count: empty.
+- List Name: `Master Contacts`. Order By: `ID asc`. Top Count: empty (Nintex Item limit is empty).
 - Nintex CAML (`XmlEncodeCaml=true`; ViewFields `FullName1`, `Position_x0020_Desciprion`):
 
 ```xml
@@ -2618,12 +2628,13 @@ Each takes the first row, or `''` when nothing matches. Confirm the no-match res
 - `FullName1` is assumed to be a Person column, stored as a lower-case e-mail (design decision 4), as in A076.
 - If it is a Text column, use `coalesce(first(body('A106_Query_GM''s_Profile')?['value'])?['FullName1'], '')` here, and change A076 in the same way.
 
-> **Parity note (I15, I10):** reproduces two things:
+> **Parity note (I15, I10, I26):** reproduces three things:
 >
 > - The GM is whoever holds the "Managers Position Number" of the row that A076 picked, from the hard-coded SBU "PDD" and "Contains Manager" search.
 > - Nothing checks that a GM was found. If nothing matches, `varApprover` is `''` (from A103), and Power Automate sets `varApproverPosition` to `''`. Nintex may have kept the A091 value of `varApproverPosition`; its no-match behaviour is not visible in the export.
+> - If several Master Contacts rows share the Position Number, Nintex's choice is not determined by the export. Power Automate takes the lowest ID.
 >
-> To fix later: derive the GM from the item's division, and stop when no GM is found.
+> To fix later: derive the GM from the item's division, and stop when no GM, or more than one, is found.
 
 > **Parity note (I33):** reproduces a change of meaning. After A091, `varApproverPosition` held the "ApprovedBy Position" output (who responded). From here it holds the GM's position description (the pending approver). To fix later: use separate variables.
 
@@ -2664,7 +2675,7 @@ General Manager: @{variables('varApprover')}
 **11. A113 Query SAP No** · SharePoint › Get items (QUERY), then **A113 Set varCustomer** · Set variable (A114 Commit has no action)
 
 - Site Address: `ev_DivisionsSiteUrl` (BaseUrl `http://portal/Divisions/`). List Name: `Clients`. Order By: `ID asc`.
-- Nintex CAML (`XmlEncodeCaml=true`; ViewFields `Customer`):
+- Nintex CAML (`XmlEncodeCaml=true`; ViewFields `Customer`; Output `varCustomer`):
 
 ```xml
 <Eq><FieldRef Name="FileLeafRef" /><Value Type="File">{ItemProperty:Client_x0020_Name}</Value></Eq>
@@ -2685,7 +2696,7 @@ coalesce(first(body('A113_Query_SAP_No')?['value'])?['Customer'], '')
 **12. A115 Query Site Name and Country** · SharePoint › Get items (QUERY), then **A115 Set varCountry** · Set variable (A116 Commit has no action)
 
 - Site Address: `ev_DivisionsSiteUrl` (BaseUrl `http://portal/Divisions/`). List Name: `Sites`. Order By: `ID asc`.
-- Nintex CAML (`XmlEncodeCaml=true`; ViewFields `Country`):
+- Nintex CAML (`XmlEncodeCaml=true`; ViewFields `Country`; Output `varCountry`):
 
 ```xml
 <Eq><FieldRef Name="Title" /><Value Type="Text">{ItemProperty:Site_x0020_Lookup}</Value></Eq>
@@ -2703,7 +2714,7 @@ Title eq '@{replace(coalesce(variables('varItem')?['Site_x0020_Lookup']?['Value'
 coalesce(first(body('A115_Query_Site_Name_and_Country')?['value'])?['Country'], '')
 ```
 
-> **Parity note (I28, I42, I44):** reproduces the third run of the same SAP and Country lookups. This time `varCustomer` is refreshed too; A069–A073 refreshed only Country. Matching Client Name against FileLeafRef, and the Site Lookup text against the Sites Title, can fail silently. To fix later: build the message once, from lookup IDs.
+> **Parity note (I28, I42, I44):** reproduces the repeated lookups. A113 is the second SAP lookup (after A019; A153 is the third). A115 is the third Country lookup (after A020 and A071; A155 is the fourth). This time `varCustomer` is refreshed too; A069–A073 refreshed only Country. Matching Client Name against FileLeafRef, and the Site Lookup text against the Sites Title, can fail silently. To fix later: build the message once, from lookup IDs.
 
 **13. A117 Message** · Variables › Set variable · `varMessage`
 
@@ -2723,8 +2734,10 @@ Client SAP No.: @{variables('varCustomer')}@{decodeUriComponent('%0A%0A')}
 Initiator's Comments: @{variables('InitiatorsComments')}@{decodeUriComponent('%0A')}
 ```
 
+- **Validity.** `convertFromUtc(…, 'yyyy/MM/dd')` is design decision 17's `formatDateTime(x,'yyyy/MM/dd')` plus the conversion from UTC to site time, exactly as in A022. An empty date gives `''`.
+- `{Common:InitiatorsDisplayName}` becomes `varInitiatorName`; `Currency` is a Choice column, so `?['Value']` is used.
 - Nintex uses one template for A022, A073 and A117, so the three values must be identical character for character.
-- Stage 2a's A073 uses a single line feed followed by a space. That follows the flattened decode, not the raw XML. Align A073 with A022 and with this step.
+- Stage 2a's A073 uses a single line feed followed by a space. That follows the flattened decode, not the raw XML, which is identical for A022, A073 and A117. Align A073 with A022 and with this step.
 
 #### Approver list and delegate (A118–A129)
 
@@ -2781,7 +2794,7 @@ Initiator's Comments: @{variables('InitiatorsComments')}@{decodeUriComponent('%0
 @not(empty(variables('varApprover')))
 ```
 
-- **Depth fallback**, only if the designer rejects the nesting: replace steps 18–20 with one action, **A125 Set a condition (single action)** · Set variable · `varApproversList`. The result is identical. Record the change in the mapping.
+- **Depth fallback.** Use it when A049 is not built as a guard clause, or when the designer rejects the nesting. Replace steps 18–20 with one action, **A125 Set a condition (single action)** · Set variable · `varApproversList`. The result is identical. Record the change in the mapping.
 
   ```
   if(not(empty(variables('varApprover'))), concat(variables('varApproverPosition'), ' Or ', variables('varDelegatePosition')), variables('varDelegatePosition'))
@@ -2915,7 +2928,7 @@ if(empty(body('A131_Delegate_lookup')?['delegate']), outputs('A131_Approver')?['
 - Item link description: `@{outputs('A131_Inputs')?['Item Name']}`
 - Requestor: `@{outputs('A131_Inputs')?['Initiator']}`
 - Enable notifications: Yes
-- Timeout: leave empty. The wait is then bounded only by the 30-day run limit.
+- Settings › Timeout: leave the default. The wait is then bounded only by the 30-day run limit.
 
 22g. **A131 Response** · Compose: `first(body('A131_Start_and_wait_for_an_approval')?['responses'])`
 
@@ -2934,6 +2947,8 @@ if(empty(body('A131_Delegate_lookup')?['delegate']), outputs('A131_Approver')?['
 - If neither a GM nor a delegate is found, Assigned to is empty, the approval action fails and the run fails. What the Nintex UDA does with a blank position is not visible (I10).
 
 > **Parity note (I13, I02):** reproduces that the GM's outcome overwrites all seven output variables, whatever the earlier levels decided, and that nothing resets them first. Together with A101's grouping, a GM "Approved" replaces a Divisional Manager "Rejected", and A145 sees only the GM's result. To fix later: clear the outputs before each scope, and keep each level's outcome separately.
+
+> **Parity note (I30):** reproduces that A131 receives only the GM's position number. The delegate that A130 shows comes from A119, and nothing passes it to the approval; the scope resolves its own assignees (inferred). The "Waiting for …" text may therefore not match who actually receives the request. To fix later: pass one resolved assignee list.
 
 > **Parity note (I44):** reproduces `IsTopLevel = False` at the top approval level. Its effect inside UDA 1000009 is not visible, and the reference implementation does not use it. To fix later: confirm whether the GM call should pass True.
 
@@ -2976,7 +2991,13 @@ Approved by: @{variables('varApprovedBy')}
 
 A file that is not checked out passes through at once. The last loop refresh is the "after A133" refresh that step 25 reads.
 
-> **Parity note (I05):** reproduces that A133 is the only wait in this stage. Nothing waits before A130, A139/A141 or A149, and the earlier approval levels have no wait after their approvals. To fix later: wait, or handle errors, before every item update that follows a human step.
+> **Parity note (I05):** reproduces that A133 is the only wait in this stage.
+>
+> - Nothing waits before A130.
+> - On the rejected path, nothing waits before A147–A149 except when the GM level ran (A133).
+> - The earlier approval levels have no wait after their approvals.
+>
+> To fix later: wait, or handle errors, before every item update that follows a human step.
 
 #### Result fields (A134–A142)
 
@@ -3028,6 +3049,7 @@ concat('{"formValues":', string(createArray(
 ```
 
 - `Approval_x0020_Date`: validateUpdateListItem expects a site-local date string. The UTC response date is therefore converted and formatted as `yyyy-MM-dd HH:mm` (design decision 6). Nintex wrote the DateTime value directly.
+- **Depth.** The Terminate in the A139 guard sits inside exactly 8 containers with the A049 guard-clause layout. Leave the guard out if A049 is not built as a guard clause (see "Where it goes"). The same applies to A141.
 
 **29. A141 Document Approver** · SET FIELD (in A137 If yes; then A141 Check update → A141 Update failed)
 
@@ -3140,7 +3162,7 @@ A148 (Commit) has no action.
 
 | Variable | Written by |
 |---|---|
-| `varItem` | Refreshes at A101, A133 (before and in the loop) and A149 |
+| `varItem` | Refreshes at A101, A133 (before and in the loop) and A149 (and after the A149 Submit) |
 | `varApprover` | A103 (`''`), A106 |
 | `varApproverPosition` | A106 (GM position), A131 (ApprovedBy Position) |
 | `varCustomer` / `varCountry` / `varMessage` | A113 / A115 / A117 |
@@ -3161,7 +3183,7 @@ A143–A149 write no variable other than `varItem`.
 ### Stage 2b: Parity test cases for this stage
 
 1. **R5m boundary.** Value(R) of R4,999,999.99, R5,000,000 and blank, with the GM flag off and the DM approving. The GM must be asked only at R5,000,000.
-2. **Flag with a low value.** GM flag ticked, Value(R) below R100k. Both the DM and the GM must be asked (A065 and A101 are TRUE through the OR).
+2. **Flag with a low value.** GM flag ticked, Value(R) below R100k, the supervisor approves, the initiator's Position Title is not exactly `Manager`, and the GM did not respond at level 2. Both the DM and the GM must be asked (A065 and A101 are TRUE through the OR).
 3. **I02.**
    - Flag ticked, DM rejects, GM approves: the result is Approved.
    - Flag ticked, DM rejects, GM rejects: the rejected path runs.
@@ -3200,7 +3222,7 @@ This stage rebuilds **A150**, the Yes branch of A145 "Approved?". It runs when t
    - sends the final notification, with a CC unless the initiator's title is exactly "Head" (A189–A193);
 5. on **both** AO paths, writes the final Workflow State (A194) and approves the document (A195).
 
-**Where it goes.** Every step in this section goes into the **If yes** branch of the A145 condition. The previous section builds that condition inside the top-level scope A143 ("Request Proposal/Revision No."). The **If no** branch of A145 holds A147–A149. Nothing follows A195: the run ends there, as the Nintex workflow does.
+**Where it goes.** Every step in this section goes into the **If yes** branch of `A145 Condition Approved`. The previous section builds that condition inside the top-level scope `A143 Scope Request Proposal-Revision No` (Nintex action set "Request Proposal/Revision No."). The **If no** branch of A145 holds A147–A149. Nothing follows A195: the run ends there, as the Nintex workflow does.
 
 **Before you start.**
 
@@ -3267,8 +3289,8 @@ The A151 refresh is added in this stage. No flow write since the last Stage 2 re
 ### Stage 3: Flow outline
 
 ```text
-A143 Request Proposal-Revision No.   (Scope, previous section)
-└─ A145 Approved?                     (Condition, previous section)
+A143 Scope Request Proposal-Revision No   (previous section)
+└─ A145 Condition Approved                (previous section)
    ├─ If no:  A147–A149               (previous section)
    └─ If yes:                         ← THIS SECTION (Nintex A150)
       ├─ A151 Scope Action set
@@ -3313,7 +3335,7 @@ A143 Request Proposal-Revision No.   (Scope, previous section)
       │                        └─ If no:  A193 Notify Initiator and AO without attachment
       ├─ A194 Workflow State (+ guard)            ← runs on BOTH A159 paths (I03)
       ├─ A195 Get file properties → A195 Set varItem
-      ├─ [A195 Condition Is Draft – only if the library has minor versions]
+      ├─ [A195 Condition Draft – only if the library has minor versions]
       └─ A195 Approved                            Set content approval status
 ```
 
@@ -3358,7 +3380,7 @@ FileLeafRef eq '@{replace(coalesce(variables('varItem')?['Client_x0020_Name'], '
 ```
 
 - Order By: `ID asc`. Top Count: empty.
-- Nintex CAML: ViewFields `Customer`, `XmlEncodeCaml=true`. It is identical to A019, apart from one trailing line feed:
+- Nintex CAML: ViewFields `Customer`, `XmlEncodeCaml=true`. It is identical to A019 apart from one trailing line feed, and byte-identical to A113:
 
 ```xml
 <Eq><FieldRef Name="FileLeafRef" /><Value Type="File">{ItemProperty:Client_x0020_Name}</Value></Eq>
@@ -3387,7 +3409,7 @@ Title eq '@{replace(coalesce(variables('varItem')?['Site_x0020_Lookup']?['Value'
 ```
 
 - Order By: `ID asc`
-- Nintex CAML: ViewFields `Country`, `XmlEncodeCaml=true`. It is identical to A020:
+- Nintex CAML: ViewFields `Country`, `XmlEncodeCaml=true`. It is identical to A020 and A071 apart from one trailing line feed, and byte-identical to A115:
 
 ```xml
 <Eq><FieldRef Name="Title" /><Value Type="Text">{ItemProperty:Site_x0020_Lookup}</Value></Eq>
@@ -3405,7 +3427,7 @@ coalesce(first(body('A155_Query_Site_Name_and_Country')?['value'])?['Country'], 
 - `Country` is assumed to be Text. If it is a Choice column, add `?['Value']`.
 - The same no-match note as step 5 applies. The earlier values come from A020, A071 or A115.
 
-> **Parity note (I42):** reproduces the third Clients lookup, the fourth Sites lookup and the fourth build of `varMessage`. A153, A155 and A157 repeat A019, A020 and A022 byte for byte. To fix later: look the values up once, or read the item's projected column `Site_x0020_Lookup_x003A_Country`.
+> **Parity note (I42):** reproduces the third Clients lookup, the fourth Sites lookup and the fourth build of `varMessage`. A153 and A155 repeat the A019 and A020 queries (their CAML differs only by one trailing line feed), and A157 repeats A022 byte for byte. To fix later: look the values up once, or read the item's projected column `Site_x0020_Lookup_x003A_Country`.
 
 > **Parity note (I28, I23):** reproduces two lookups that may not match. Clients is matched on `FileLeafRef` against the free-text Client Name. Sites is matched on `Title` against the Site Lookup display value. A mismatch silently leaves `varCustomer` or `varCountry` empty. It also reproduces the label "Query Site Name & Country", although the query returns only Country. To fix later: query by lookup ID and rename the action.
 
@@ -3444,7 +3466,7 @@ Initiator's Comments: {WorkflowVariable:InitiatorsComments}{Common:NewLine}
 - **Values.**
   - `Value_x0028_R_x0029_` is a calculated currency column. It is inserted as the text the connector returns.
   - `Proposal_x0020_Value` is a Number. `Currency` is a Choice.
-  - `fn-FormatDate(…,"yyyy/MM/dd")` is formatted in the site time zone, as in A022. An empty date gives `''`.
+  - `fn-FormatDate(…,"yyyy/MM/dd")` is formatted in the site time zone with `convertFromUtc`, exactly as in A022, rather than with the plain `formatDateTime` of design decision 17. The connector returns UTC, so a date stored at local midnight would otherwise show the previous day. An empty date gives `''`.
   - `varInitiatorName` stands in for `{Common:InitiatorsDisplayName}`.
 
 > **Parity note (I29):** reproduces the plain line feeds in `varMessage`. The message is placed in HTML e-mails (the A167/A176 notifications, A191 and A193), where the line feeds collapse into spaces. It also reproduces the unformatted Rand and foreign values. To fix later: build an HTML variant with `<br>` and format the numbers.
@@ -3996,7 +4018,8 @@ Proposal_x0020_No_x002e_1 eq '@{replace(coalesce(variables('varItem')?['Proposal
 ```
 
 - `LinkFilenameNoMenu` is a computed column and cannot be filtered in OData. The filter uses `FileLeafRef`, which holds the same file name.
-- With an empty Proposal No., `eq ''` matches nothing. The CAML `Eq` on an empty value also matched nothing in practice; confirm in the parity test.
+- Limit Entries to Folder: empty. Include Nested Items: leave the default (**Yes**). The CAML sets no folder scope, so whether Nintex also searched subfolders of Proposals is not visible. If the parity test shows that Nintex searched only the root folder, set it to **No** (see Open questions and test case 12).
+- An empty Proposal No. (I19) gives the filter `eq ''`. Neither the result of Nintex's CAML `Eq` with an empty value nor that of the OData `eq ''` is certain. Compare the A188 log of both systems in the parity test (test case 8).
 
 **50. A185 Set varApprovedProposal** · Variables › Set variable
 
@@ -4067,9 +4090,10 @@ concat('Proposal No.: ', coalesce(variables('varItem')?['Proposal_x0020_No_x002e
 - The test is TRUE only when A185 found a file and that file sits at exactly the URL that A187 built, so that Nintex could have fetched it:
 
 ```
-@and(greater(length(body('A185_Approved_Proposals')?['value']), 0), equals(toLower(concat(parameters('ev_DivisionsSiteUrl (pa_ev_DivisionsSiteUrl)'), '/', first(body('A185_Approved_Proposals')?['value'])?['{FullPath}'])), toLower(variables('varApprovedProposal'))))
+@and(greater(length(body('A185_Approved_Proposals')?['value']), 0), equals(toLower(concat(parameters('ev_DivisionsSiteUrl (pa_ev_DivisionsSiteUrl)'), '/', coalesce(first(body('A185_Approved_Proposals')?['value'])?['{FullPath}'], ''))), toLower(variables('varApprovedProposal'))))
 ```
 
+- `coalesce` keeps the expression valid when nothing matched. Power Automate does not guarantee that `and()` skips its second argument when the first is false.
 - If yes: steps 56–57. If no: step 58.
 
 **56. A191 Get file content using path** · SharePoint › Get file content using path
@@ -4193,9 +4217,10 @@ concat('{"formValues":', string(createArray(
 body('A195_Get_file_properties')
 ```
 
-**66. (only if Draft Proposals has minor versions) A195 Condition Is Draft** · Control › Condition
+**66. A195 Condition Draft** · Control › Condition (only if Draft Proposals has minor versions; a platform step, not a Nintex action)
 
 - *Set content approval status* can approve only a **Pending** file. With minor versions on, the A194 write can leave the file in **Draft**.
+- It mirrors `A149 Condition Draft` in the previous section, with the same names for its helpers.
 
 ```
 @equals(variables('varItem')?['{ModerationStatus}'], 'Draft')
@@ -4203,7 +4228,8 @@ body('A195_Get_file_properties')
 
 - If yes:
   1. **A195 Submit** · SharePoint › Set content approval status: Site Address `ev_ProjectsSiteUrl`, Library Name `Draft Proposals`, Id `triggerBody()?['entity']?['ID']`, Action **Submit**, ETag `@{variables('varItem')?['{ETag}']}`
-  2. **A195 Get file properties after submit** and **A195 Set varItem after submit**: REFRESH ITEM.
+  2. **A195 Get file properties (after submit)** · REFRESH ITEM, for the new ETag.
+  3. **A195 Set varItem (after submit)** · Set variable `varItem` = `body('A195_Get_file_properties_(after_submit)')`.
 - If no: empty.
 
 **67. A195 Approved** · SharePoint › Set content approval status
@@ -4268,6 +4294,7 @@ Read but not written here: `varInitiatorEmail`, `varInitiatorName`, `InitiatorsC
 | 9 | The file is checked out to another user when A171, A181 or A194 runs | The update fails and the run stops (I05) |
 | 10 | Library with minor versions | A195 Submit, then Approve |
 | 11 | Compare the AO name in Workflow State with a past Nintex run | Same display name |
+| 12 | The only matching PDF is in a subfolder of Proposals | No attachment in either system. The A188 log shows the root URL plus the file name if Nintex searched subfolders, or the root alone if it did not. Set A185 Include Nested Items to match |
 
 ## Nintex → Power Automate action map
 
@@ -4377,21 +4404,21 @@ Every action in the Nintex export, in export order, with the Power Automate acti
 | A100 | NWCommit "Commit pending changes" | — (not needed) | Stage 2b A101 follows here, inside the A067 If yes branch after A093. |
 | A101 | NWRunIf2 "Value (R) > R5m" (bottom label "Request GM's Approval") | A101 Condition Value (R) gt R5m · Control › Condition (If no empty); preceded by A101 Get file properties + A101 Set varItem (REFRESH ITEM) and A101 Value R as number (Compose) | Single expression with the exact stored grouping: or(and(equals(varApprovalStatus,'Approved'), greaterOrEquals(Value R as number, 5000000)), equals(GM_x0020_Approval_x0020_Required, true)). Parity notes I02 (grouping), I01 (nested in A067 If yes), I17/I23 (≥ despite the label; blank = 0). Value(R) text converted with float() after removing separators. |
 | A102 | WFSequence "" | — (structural) | Contents of A101 If yes (steps 4–29). |
-| A103 | SPSetVariable "Set variable" (varApprover = varEmpty) | A103 Set variable · Variables › Set variable | varApprover = variables('varEmpty'), which gives ''. Text into a User variable; the only variable cleared before the GM lookup (I22, I34). |
+| A103 | SPSetVariable "Set variable" (varApprover = varEmpty) | A103 Set variable · Variables › Set variable | varApprover = variables('varEmpty'), which gives ''. Never-assigned varEmpty (I22), Text into a User variable (I34), the only variable cleared before the GM lookup (I10). |
 | A104 | NWBusinessProcess "General Manager's Profile" | A104 Scope General Manager's Profile · Control › Scope | Holds A106 (Get items + 2 Set variable) and A108. |
 | A105 | WFSequence "" | — (structural) | Contents of the A104 scope. |
-| A106 | NWQueryList "Query GM's Profile" | A106 Query GM's Profile · SharePoint › Get items (Master Contacts, ev_DivisionsSiteUrl) + A106 Set varApprover + A106 Set varApproverPosition · Set variable | Filter Position_x0020_Number eq varManagerPositionNo, Order By ID asc. FullName1 → varApprover (lower-case e-mail); Position_x0020_Desciprion → varApproverPosition. First row; '' on no match (confirm). I10, I15, I33. |
+| A106 | NWQueryList "Query GM's Profile" | A106 Query GM's Profile · SharePoint › Get items (Master Contacts, ev_DivisionsSiteUrl) + A106 Set varApprover + A106 Set varApproverPosition · Set variable | Filter Position_x0020_Number eq varManagerPositionNo, Order By ID asc. FullName1 → varApprover (lower-case e-mail); Position_x0020_Desciprion → varApproverPosition. First row; '' on no match (confirm). I10, I15, I26, I33. |
 | A107 | NWCommit "Commit pending changes" | — (not needed) | Every Power Automate write is immediate. |
 | A108 | NWWriteToHistoryList "Log in history list" | A108 Log in history list · Data Operation › Compose | General Manager: @{variables('varApprover')}. Optional Create item in Proposal Approval History. |
-| A109 | NWRunIf2 "IF, General Manager has not Approved the Project" | A109 Condition IF, General Manager has not Approved the Project · Control › Condition (If no empty) | not(equals(varApprovedBy, varApprover)). Both sides are lower-case e-mails (I14). If yes holds A111–A142. |
+| A109 | NWRunIf2 "IF, General Manager has not Approved the Project" | A109 Condition IF, General Manager has not Approved the Project · Control › Condition (If no empty) | not(equals(varApprovedBy, varApprover)), operand order as in the export. Both sides are lower-case e-mails (I14). If yes holds A111–A142. |
 | A110 | WFSequence "" | — (structural) | Contents of A109 If yes. |
 | A111 | NWBusinessProcess "Action set" | A111 Scope Action set · Control › Scope | Holds A113, A115 and A117. |
 | A112 | WFSequence "" | — (structural) | Contents of the A111 scope. |
-| A113 | NWQueryList "Query SAP No." | A113 Query SAP No · SharePoint › Get items (Clients) + A113 Set varCustomer · Set variable | FileLeafRef eq Client_x0020_Name (A101 refresh), Order By ID asc. Same as Stage 1 A019 (I28, I42). |
+| A113 | NWQueryList "Query SAP No." | A113 Query SAP No · SharePoint › Get items (Clients) + A113 Set varCustomer · Set variable | FileLeafRef eq Client_x0020_Name (A101 refresh), Order By ID asc; Output varCustomer. Same as Stage 1 A019; second SAP lookup (I28, I42). |
 | A114 | NWCommit "Commit pending changes" | — (not needed) | Every Power Automate write is immediate. |
-| A115 | NWQueryList "Query Site Name & Country" | A115 Query Site Name and Country · SharePoint › Get items (Sites) + A115 Set varCountry · Set variable | Title eq Site_x0020_Lookup Value (A101 refresh). Same as Stage 1 A020 (I28, I42). |
+| A115 | NWQueryList "Query Site Name & Country" | A115 Query Site Name and Country · SharePoint › Get items (Sites) + A115 Set varCountry · Set variable | Title eq Site_x0020_Lookup Value (A101 refresh); Output varCountry. Same as Stage 1 A020; third Country lookup (I28, I42). |
 | A116 | NWCommit "Commit pending changes" | — (not needed) | Every Power Automate write is immediate. |
-| A117 | NWBuildString "Message" | A117 Message · Variables › Set variable (varMessage) | Identical to A022: {Common:NewLine} plus the literal line feed from the raw XML gives two line feeds; item values from the A101 refresh. A073 must match (I29, I42, I44). |
+| A117 | NWBuildString "Message" | A117 Message · Variables › Set variable (varMessage) | Identical to A022: {Common:NewLine} plus the literal line feed from the raw XML gives two line feeds; item values from the A101 refresh; date via convertFromUtc(…,'yyyy/MM/dd') as in A022. A073 must match (I29, I42, I44). |
 | A118 | SPSetVariable "build approver's list" | A118 build approver's list · Variables › Set variable | varApproversList = varApproverPosition (the GM position from A106). |
 | A119 | UserDefinedActionWrapper "Delegate UDA" (UDA 1000010) | A119 Delegate UDA · Flows › Run a Child Flow (CF Delegate Lookup) + A119 Set varDelegate + A119 Set varDelegatePosition · Set variable | Approver = ''; Approver Position Number = varManagerPositionNo. Deliberately no varDelegate reset before it (I35). Acting, Delegate Position No and DelegatesName unmapped. Internals INFERRED. |
 | A120 | NWRunIf2 "build approver's list" | A120 Condition build approver's list · Control › Condition (If no empty) | not(empty(varDelegate)). |
@@ -4399,13 +4426,13 @@ Every action in the Nintex export, in export order, with the Power Automate acti
 | A122 | WFIfElse "Set a condition" | A122 Condition Set a condition · Control › Condition | Repeats A120's test not(empty(varDelegate)); built as-is (I44). If no (A123) is empty. |
 | A123 | WFIfElseBranch "IfElseBranch" (No branch of A122) | — (structural) | If no of A122: empty and unreachable. |
 | A124 | WFIfElseBranch "IfElseBranch" (Yes branch of A122) | — (structural) | If yes of A122: holds A125. |
-| A125 | WFIfElse "Set a condition" | A125 Condition Set a condition · Control › Condition | not(empty(varApprover)) (I30). Sits at the 8-container limit (needs the A049 guard-clause layout). Fallback if rejected: a single Set variable with if(), same result. |
+| A125 | WFIfElse "Set a condition" | A125 Condition Set a condition · Control › Condition | not(empty(varApprover)) (I30). Its children sit at the 8-container limit (needs the A049 guard-clause layout). Fallback when A049 is not a guard clause or saving fails: one Set variable with if(), same result; record it here. |
 | A126 | WFIfElseBranch "IfElseBranch" (No branch of A125) | — (structural) | If no of A125: holds A127. |
 | A127 | SPSetVariable "build approver's list" | A127 build approver's list · Variables › Set variable | varApproversList = varDelegatePosition. |
 | A128 | WFIfElseBranch "IfElseBranch" (Yes branch of A125) | — (structural) | If yes of A125: holds A129. |
 | A129 | SPSetVariable "build approver's list" | A129 build approver's list · Variables › Set variable | '<varApproverPosition> Or <varDelegatePosition>'; Nintex &nbsp; becomes a space (design decision 17, I27). |
 | A130 | SPSetFieldWithKey "Workflow State" | A130 Workflow State · SharePoint › Send an HTTP request to SharePoint (validateUpdateListItem) + A130 Check update / A130 Update failed (platform guard) | Workflow_x0020_State = 'Waiting for {varApproversList} to Approve the Proposal document for {Site Name} ' with the trailing space kept (I27, I32); Site Name from the A101 refresh (I10). |
-| A131 | UserDefinedActionWrapper "GM's Approval Request" (UDA 1000009) | A131 GM's Approval Request · Control › Scope (APPROVAL REQUEST 3/3: Inputs, Get approver, Approver, Delegate lookup, Assigned to, Start and wait for an approval, Response, 7 × Set variable) | Position Number = varManagerPositionNo; IsTopLevel false; Item Name 'Proposal'; Subject varApprovalLine; Message varMessage. Outputs overwrite the 7 variables (I13, I02, I44, I12). Internals INFERRED. |
+| A131 | UserDefinedActionWrapper "GM's Approval Request" (UDA 1000009) | A131 GM's Approval Request · Control › Scope (APPROVAL REQUEST 3/3: Inputs, Get approver, Approver, Delegate lookup, Assigned to, Start and wait for an approval, Response, 7 × Set variable) | Position Number = varManagerPositionNo; IsTopLevel false; Item Name 'Proposal'; Subject varApprovalLine; Message varMessage; Initiator varInitiatorEmail; Initiator Comments InitiatorsComments. Outputs overwrite the 7 variables (I13, I02, I30, I44, I12). Internals INFERRED. |
 | A132 | NWWriteToHistoryList "Log in history list" | A132 Log in history list · Data Operation › Compose | Approved by: @{variables('varApprovedBy')}, logged for any outcome (I44). |
 | A133 | SPWaitForDocumentStatus "Wait for check out status change" (unlock; bottom label "Unlocked by document editor") | A133 Wait for check out status change · Control › Do until (UNLOCK WAIT): A133 Get file properties + Set varItem before (= after-A131 refresh); inside: A133 Delay while checked out, A133 Get file properties (loop) + Set varItem (loop); then A133 Still checked out → A133 Wait limit reached (Terminate) | Loops until {IsCheckedOut} is not true; Count 5000, Timeout P30D. Nintex waits for the editor lock without a limit (I05, deviation). |
 | A134 | SPSetFieldWithKey "Workflow State" | A134 Workflow State · SharePoint › Send an HTTP request to SharePoint (validateUpdateListItem) + A134 Check update guard | 'A Proposal document for {Site} was {varApprovalStatus} by {varApproverPosition}', &nbsp; written as spaces; reads the last A133 refresh (I32, I02). |
@@ -4413,24 +4440,24 @@ Every action in the Nintex export, in export order, with the Power Automate acti
 | A136 | WFSequence "" | — (structural) | Contents of A135 If yes. |
 | A137 | WFIfElse "Set a condition" | A137 Condition Set a condition · Control › Condition | not(equals(varApprover, varApprovedBy)); If yes → A141 (Delegated), If no → A139 (I14). |
 | A138 | WFIfElseBranch "IfElseBranch" (No branch of A137) | — (structural) | If no of A137: holds A139. |
-| A139 | SPUpdateItemWithKey "Document Approver" (this item) | A139 Document Approver · SharePoint › Send an HTTP request to SharePoint (validateUpdateListItem) + A139 Check update guard | Document_x0020_Approver = varApproversName; Approval_x0020_Date = convertFromUtc(varApprovalDate, site time zone, 'yyyy-MM-dd HH:mm'); Designation = varApproverPosition (I18). |
+| A139 | SPUpdateItemWithKey "Document Approver" (this item) | A139 Document Approver · SharePoint › Send an HTTP request to SharePoint (validateUpdateListItem) + A139 Check update guard (omit if A049 is not a guard clause: depth) | Document_x0020_Approver = varApproversName; Approval_x0020_Date = convertFromUtc(varApprovalDate, site time zone, 'yyyy-MM-dd HH:mm'); Designation = varApproverPosition (I18). |
 | A140 | WFIfElseBranch "IfElseBranch" (Yes branch of A137) | — (structural) | If yes of A137: holds A141. |
-| A141 | SPUpdateItemWithKey "Document Approver" (this item) | A141 Document Approver · SharePoint › Send an HTTP request to SharePoint (validateUpdateListItem) + A141 Check update guard | Same as A139, but Designation = varApproverPosition + '(Delegated)' with no space (I27, I18). |
+| A141 | SPUpdateItemWithKey "Document Approver" (this item) | A141 Document Approver · SharePoint › Send an HTTP request to SharePoint (validateUpdateListItem) + A141 Check update guard (omit if A049 is not a guard clause: depth) | Same as A139, but Designation = varApproverPosition + '(Delegated)' with no space (I27, I18). |
 | A142 | NWCommit "Commit pending changes" | — (not needed) | Every Power Automate write is immediate. End of A109, A101 and the Stage 2 containers. |
-| A143 | NWBusinessProcess "Request Proposal/Revision No." | A143 Scope Request Proposal-Revision No · Control › Scope (top level, after the A042 scope) | '/' becomes '-' and the trailing '.' is dropped from the name. Runs in every run that A051 did not end. |
+| A143 | NWBusinessProcess "Request Proposal/Revision No." | A143 Scope Request Proposal-Revision No · Control › Scope (top level, after the A042 scope) | '/' becomes '-' and the trailing '.' is dropped from the name. Runs in every run that A051 (or a platform guard) did not end. |
 | A144 | WFSequence "" | — (structural) | Contents of the A143 scope. |
 | A145 | WFIfElse "Approved?" | A145 Condition Approved · Control › Condition | equals(varApprovalStatus, 'Approved'), exact and case-sensitive (I13). If yes = A150 (Stage 3); If no = A146 (A147–A149). '?' dropped from the name. |
 | A146 | WFIfElseBranch "IfElseBranch" (No branch of A145) | — (structural) | If no of A145: holds A147–A149 (the rejected path). |
-| A147 | NWSendMessage "Notify Initiator" | A147 Notify Initiator · Office 365 Outlook › Send an email (V2) | To varInitiatorEmail; Subject varNotificationLine; HTML body copied from the raw XML with varMessage, varApprovalComments and {Link}; Importance Normal; no CC, BCC or attachments. From = varApprovedBy is not reproduced (deviation, I34). I29. |
+| A147 | NWSendMessage "Notify Initiator" | A147 Notify Initiator · Office 365 Outlook › Send an email (V2) | To varInitiatorEmail; Subject varNotificationLine; HTML body byte-identical to the raw XML with varMessage, varApprovalComments and {Link}; Importance Normal; no CC, BCC or attachments. From = varApprovedBy is not reproduced (deviation, I34). I29. |
 | A148 | NWCommit "Commit pending changes" | — (not needed) | Every Power Automate write is immediate. |
 | A149 | NWSetModerationStatus "Rejected" (Status Denied, Message varApprovalComments; bottom label "Rejected") | A149 Rejected · SharePoint › Set content approval status (Action Reject); preceded by A149 Get file properties + A149 Set varItem and A149 Condition Draft (→ A149 Submit + A149 Get file properties (after submit) + A149 Set varItem (after submit)) | Comments = varApprovalComments; ETag from the fresh refresh. The Submit step is a platform step for minor-version drafts. I32, I18, I05. |
 | A150 | WFIfElseBranch "IfElseBranch" (YES branch of A145 "Approved?") | — (structural) | Becomes the If yes branch of the A145 Condition; holds steps 1–67 (A151–A195). |
 | A151 | NWBusinessProcess "Action set" | A151 Scope Action set (Scope) | First action of A145 If yes. Also holds the added REFRESH ITEM A151 Get file properties / A151 Set varItem, used by A153–A158 and by A194 on the no-AO path. |
 | A152 | WFSequence "" | — (structural) | Sequence inside A151. |
-| A153 | NWQueryList "Query SAP No." | A153 Query SAP No (SharePoint Get items, Clients) + A153 Set varCustomer (Set variable) | Filter: FileLeafRef eq item Client_x0020_Name; Order By ID asc; first Customer or ''. Same CAML as A019 (I42, I28). No-match value: confirm in the parity test. |
-| A154 | NWCommit "Commit pending changes" | — (not needed) | Every Power Automate write is immediate. |
-| A155 | NWQueryList "Query Site Name & Country" | A155 Query Site Name and Country (Get items, Sites) + A155 Set varCountry (Set variable) | Filter: Title eq item Site_x0020_Lookup display value; returns only Country (I23, I28, I42). |
-| A156 | NWCommit "Commit pending changes" | — (not needed) | Every Power Automate write is immediate. |
+| A153 | NWQueryList "Query SAP No." | A153 Query SAP No (SharePoint Get items, Clients) + A153 Set varCustomer (Set variable) | Filter: FileLeafRef eq item Client_x0020_Name; Order By ID asc; first Customer or ''. Same CAML as A019 (apart from a trailing line feed) and A113 (I42, I28). No-match value: confirm in the parity test. |
+| A154 | NWCommit "Commit pending changes" | — (not needed) | Every Power Automate write is immediate. Nintex commits after a read-only query, so there is nothing to commit (I41). |
+| A155 | NWQueryList "Query Site Name & Country" | A155 Query Site Name and Country (Get items, Sites) + A155 Set varCountry (Set variable) | Filter: Title eq item Site_x0020_Lookup display value; returns only Country. Same CAML as A020/A071 (apart from a trailing line feed) and A115 (I23, I28, I42). |
+| A156 | NWCommit "Commit pending changes" | — (not needed) | Every Power Automate write is immediate. Nintex commits after a read-only query, so there is nothing to commit (I41). |
 | A157 | NWBuildString "Message" | A157 Message (Set variable varMessage) | Template byte-identical to A022/A073/A117; double line feed per separator, as in the raw XML; date formatted yyyy/MM/dd in the site time zone (I29, I42). |
 | A158 | UserDefinedActionWrapper "AO with DELEGATE UDA" (UDA 1000022) | A158 AO with DELEGATE UDA (Run a Child Flow → CF Admin Officer Lookup) + A158 Set varAO (Set variable) | Inputs Division = varItem Division Value, Role = "Proposals"; output AO → varAO (lower-case e-mail). Child internals are INFERRED (I34). |
 | A159 | WFIfElse "AO EXISTS" | A159 Condition AO EXISTS (Condition) | @not(empty(variables('varAO'))). If no = A160, If yes = A162. A194/A195 are after this condition, not inside it (I03). |
@@ -4459,17 +4486,17 @@ Every action in the Nintex export, in export order, with the Power Automate acti
 | A182 | NWCommit "Commit pending changes" | — (not needed) | Every Power Automate write is immediate. |
 | A183 | SPSetFieldWithKey "Workflow State" | A183 Workflow State (SET FIELD) + A183 Check update / A183 Update failed | 'A Revision No. for the Proposal document for {Site Name} has been created by {varAOName}'; Site Name from the A176 refresh. |
 | A184 | NWStartWorkflow2 "Generate PDF" (WaitForComplete=true, DontStartIfAlreadyRunning=true) | A184 Generate PDF (Run a Child Flow → CF Generate PDF) [+ asynchronous: A184 Wait for completion (Do until: A184 Delay, A184 Get child run) + A184 Child run not completed / A184 Wait limit reached] | Inputs Item ID, Initiator, Parent Run ID. Synchronous if under 120 s, otherwise asynchronous. DontStartIfAlreadyRunning has no equivalent (I06, I39). |
-| A185 | NWQueryList "Approved Proposals" | A185 Get file properties + A185 Set varItem (REFRESH ITEM) + A185 Approved Proposals (Get items, Proposals library) + A185 Set varApprovedProposal | Filter Proposal_x0020_No_x002e_1 eq item value and FileLeafRef eq item Proposal_x0020_Title (stands in for LinkFilenameNoMenu); output {FilenameWithExtension} or '' (I16, I26). |
-| A186 | NWCommit "Commit pending changes" | — (not needed) | Every Power Automate write is immediate. |
+| A185 | NWQueryList "Approved Proposals" | A185 Get file properties + A185 Set varItem (REFRESH ITEM) + A185 Approved Proposals (Get items, Proposals library) + A185 Set varApprovedProposal | Filter Proposal_x0020_No_x002e_1 eq item value and FileLeafRef eq item Proposal_x0020_Title (stands in for LinkFilenameNoMenu); Include Nested Items left at Yes until the parity test shows Nintex's folder scope; output {FilenameWithExtension} or '' (I16, I26). |
+| A186 | NWCommit "Commit pending changes" | — (not needed) | Every Power Automate write is immediate. Nintex commits after a read-only query, so there is nothing to commit (I41). |
 | A187 | SPSetVariable "Proposal Name" | A187 Compose Proposal Name (Compose) + A187 Proposal Name (Set variable varApprovedProposal) | concat(ev_ProposalsUrl, varApprovedProposal); a Compose is needed because Set variable cannot reference itself (I24, I38). |
 | A188 | NWWriteToHistoryList "Log in history list" | A188 Log in history list (Compose) [+ optional A188 Write history] | 'Proposal No.: {Proposal No.}' + line feed + 'Approved Proposal pdf:{varApprovedProposal}'. |
 | A189 | WFIfElse "Notify All" | A189 Condition Notify All (Condition) | @equals(variables('varPositionTitle'), 'Head'), case-sensitive. If no = A190 (A191), If yes = A192 (A193) (I07, I04). |
 | A190 | WFIfElseBranch "IfElseBranch" (NO branch of A189) | — (structural) | If no of A189. |
-| A191 | NWSendMessage "Notify Initiator & AO & Head" | A191 Condition Attachment found + A191 Get file content using path + A191 Notify Initiator and AO and Head (Send an email (V2) with attachment) / A191 Notify Initiator and AO and Head without attachment | To varInitiatorEmail;varAO, CC varSupervisor, subject varNotificationLine, exact HTML body with ev_ProposalsUrl; URL attachment varApprovedProposal only when that file exists (I34, I38, I16). |
+| A191 | NWSendMessage "Notify Initiator & AO & Head" | A191 Condition Attachment found + A191 Get file content using path + A191 Notify Initiator and AO and Head (Send an email (V2) with attachment) / A191 Notify Initiator and AO and Head without attachment | To varInitiatorEmail;varAO, CC varSupervisor, subject varNotificationLine, exact HTML body with ev_ProposalsUrl; URL attachment varApprovedProposal only when that file exists (null-safe test with coalesce) (I34, I38, I16). |
 | A192 | WFIfElseBranch "IfElseBranch" (YES branch of A189) | — (structural) | If yes of A189. |
 | A193 | NWSendMessage "Notify Initiator & AO" | A193 Condition Attachment found + A193 Get file content using path + A193 Notify Initiator and AO (Send an email (V2) with attachment) / A193 Notify Initiator and AO without attachment | To varInitiatorEmail;varAO, no CC; exact HTML body (with &nbsp; and trailing empty paragraphs); same attachment rule (I38, I16). |
 | A194 | SPSetFieldWithKey "Workflow State" | A194 Workflow State (SET FIELD) + A194 Check update / A194 Update failed | 'A Proposal document for {Site Name} has been Approved'. Placed after A159, so it runs on both AO paths (I03, I05). |
-| A195 | NWSetModerationStatus "Approved" (Status=Approved, Message=varApprovalComments) | A195 Get file properties + A195 Set varItem (REFRESH ITEM) + [optional A195 Condition Is Draft → A195 Submit + refresh] + A195 Approved (SharePoint Set content approval status, Action Approve) | Comments = varApprovalComments; ETag = varItem {ETag} from the fresh refresh. Runs on both AO paths (I03, I39). |
+| A195 | NWSetModerationStatus "Approved" (Status=Approved, Message=varApprovalComments) | A195 Get file properties + A195 Set varItem (REFRESH ITEM) + [optional A195 Condition Draft → A195 Submit + A195 Get file properties (after submit) / A195 Set varItem (after submit)] + A195 Approved (SharePoint Set content approval status, Action Approve) | Comments = varApprovalComments; ETag = varItem {ETag} from the fresh refresh. Runs on both AO paths (I03, I39). |
 
 ## Deviations from Nintex
 

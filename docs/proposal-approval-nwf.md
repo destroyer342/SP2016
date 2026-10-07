@@ -7,6 +7,8 @@ This document analyses [`Proposal_Approval.nwf`](../Proposal_Approval.nwf), a Ni
 - both use the `Workflow Tasks` list of the `/Divisions/PDD/Projects` site;
 - this workflow looks for the approved PDF in the **Proposals** library at `http://portal/Divisions/Proposals/` (A185). The PEF form reads that same library through its *Proposals* data connection to fill in proposal numbers and links.
 
+**Rebuilding in Power Automate:** [`powerautomate/proposal-approval-flow/README.md`](../powerautomate/proposal-approval-flow/README.md) is a step-by-step guide, with flow diagrams, to rebuild this workflow as a Power Automate cloud flow with identical logic.
+
 How to read this document:
 
 - **Action IDs.** Identifiers such as A001 or A055 (`[A###]`) number the workflow's actions in the order they appear in the export. A001 is the workflow's own settings record. A range such as A005–A041 covers an action and everything nested inside it.
