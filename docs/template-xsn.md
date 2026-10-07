@@ -580,7 +580,7 @@ Ranked by impact. Each finding names the rule or setting involved so it can be c
   - the numbering logic ([section 7](#7-project-numbering));
   - the cost model ([section 8](#8-cost-and-pricing-model));
   - the approver resolution and delegation rules ([section 5](#5-roles-and-how-they-are-resolved));
-  - the Nintex approval workflow, which has to be analysed separately.
+  - the Nintex approval workflow, which has to be analysed separately. It is not in this repo: [`Proposal_Approval.nwf`](../Proposal_Approval.nwf) is a different workflow, for draft proposal documents (see [proposal-approval-nwf.md](proposal-approval-nwf.md)).
 
   Fixing the findings in [section 16](#16-findings-bugs-risks-and-clean-up) during the migration avoids carrying them over.
 
