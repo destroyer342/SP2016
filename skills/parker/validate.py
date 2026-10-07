@@ -9,7 +9,7 @@ Usage:
   validator treats their controls + properties as the "proven" vocabulary and
   flags anything in NEW_SCREEN.yaml that isn't proven.
 
-Checks (see the powerapps-canvas-yaml skill for the why behind each):
+Checks (see the parker skill, SKILL.md, for the why behind each):
   1. YAML parses (with a constructor for Power Apps' bare `=` value tag).
   2. Every control type / @version is proven in the existing screens.
   3. Every property name is one already used on that control type elsewhere.
@@ -20,16 +20,18 @@ Checks (see the powerapps-canvas-yaml skill for the why behind each):
      proved unreliable; prefer explicit Parent.Width * fraction).
   7. A positioning-wrapper GroupContainer (its only child is a Classic/* control)
      carrying an opaque Fill (warns: paints a stray block over only its
-     sub-column; make it transparent and draw backgrounds with a full-width
-     control).
-  8a. A GroupContainer with no solid Fill missing an explicit DropShadow, or
-     carrying DropShadow.Light (warns: scaffolding containers want
-     =DropShadow.None; Light is for an elevated solid-Fill card only).
-  8b. A GroupContainer writing Fill: =RGBA(0,0,0,0) (warns: omit the Fill line).
-  8. Every GroupContainer sets BorderStyle: =BorderStyle.None (warns if missing:
-     the container's default is a visible border). DropShadow is NOT required —
-     its default is already None and Studio strips an explicit None on export;
-     set =DropShadow.Light only to emphasize a card.
+     sub-column; remove the wrapper's Fill line and draw backgrounds with a
+     separate full-width control).
+  8. GroupContainer chrome (all warnings):
+     a. BorderStyle missing - the container's default is a visible border, so
+        every GroupContainer sets BorderStyle: =BorderStyle.None.
+     b. A GroupContainer with no solid Fill of its own (scaffolding) missing an
+        explicit DropShadow, or carrying DropShadow.Light - scaffolding wants
+        =DropShadow.None; Light is for an elevated solid-Fill card only. Do not
+        rely on DropShadow defaulting to None. A solid-Fill painted surface or
+        hairline is not flagged when it omits DropShadow.
+     c. A GroupContainer writing Fill: =RGBA(0,0,0,0) - omit the Fill line
+        instead; the explicit transparent RGBA belongs on Classic/Button.
   9. A direct child of a ManualLayout GroupContainer whose numeric Y + Height
      exceeds the parent's numeric Height (warns: the child is clipped / renders
      detached outside the card; raise the parent Height or make it a sibling).
@@ -180,13 +182,17 @@ def audit(doc, proven):
                     WARNINGS.append(
                         f"{ctrl} wraps a single {inner_ctrl} but has an opaque Fill ({props['Fill']}) - "
                         "a positioning-only wrapper paints a stray block over just its sub-column; "
-                        "set Fill =RGBA(0,0,0,0) and draw any row/card background with a separate full-width control"
+                        "remove its Fill line (a GroupContainer is transparent without one) and draw any "
+                        "row/card background with a separate full-width control"
                     )
         # 8. GroupContainer should suppress Studio's default chrome: BOTH the
-        #    border AND the shadow. BorderStyle.None is not the container default.
-        #    DropShadow is NOT reliably None either - state it explicitly. Most
-        #    containers are scaffolding (region / card / positioning wrappers)
-        #    and want =DropShadow.None; only a solid-Fill elevated card takes Light.
+        #    border AND the shadow.
+        #    8a. BorderStyle.None is not the container default.
+        #    8b. DropShadow is NOT reliably None either - state it explicitly. Most
+        #        containers are scaffolding (region / card / positioning wrappers)
+        #        and want =DropShadow.None; only a solid-Fill elevated card takes
+        #        Light. A solid-Fill painted surface may omit DropShadow.
+        #    8c. Transparency is expressed by omitting Fill, not RGBA(0,0,0,0).
         if ctrl.startswith("GroupContainer"):
             if "BorderStyle" not in props:
                 WARNINGS.append(f"{ctrl} is missing BorderStyle: =BorderStyle.None - add it to suppress Studio's default container border")
@@ -204,7 +210,7 @@ def audit(doc, proven):
                     f"{ctrl} uses DropShadow.Light but has no solid Fill - a positioning/region wrapper "
                     "should be =DropShadow.None; reserve Light for an elevated card surface"
                 )
-            # a container's transparency is expressed by omitting Fill, not by RGBA(0,0,0,0)
+            # 8c. a container's transparency is expressed by omitting Fill, not by RGBA(0,0,0,0)
             if fill is not None and is_transparent(fill):
                 WARNINGS.append(
                     f"{ctrl} sets Fill: =RGBA(0,0,0,0) - on a GroupContainer omit the Fill line entirely; "

@@ -14,7 +14,7 @@
 #  3. Every GroupContainer sets BorderStyle: =BorderStyle.None and
 #     DropShadow: =DropShadow.None to suppress Studio's default border/shadow.
 #     (Use DropShadow: =DropShadow.Light instead of None to emphasize a card.)
-
+#
 #  4. The row action is a real Classic/Button (text) / Classic/Icon (icon-only),
 #     never a Label with an OnSelect - a Label gives no hover/press feedback,
 #     no focus ring and no keyboard reach. The Centre badge is the inverse: a

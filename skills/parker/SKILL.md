@@ -78,7 +78,7 @@ Shared chrome (headers, nav, menus) is usually external `CanvasComponent`s place
 
 Importing pa-yaml into Studio and re-exporting **normalizes** it. Verified on a real round-trip:
 
-- **Some default-valued properties are stripped.** A few `Size`/`Height`/`VerticalAlign` values that matched defaults were dropped on re-export. `BorderStyle: =BorderStyle.None` was **kept**. **`DropShadow: =DropShadow.None` is NOT reliably a no-op — write it anyway.** An earlier version of this skill claimed `None` was the default and told you to skip it; that guidance was wrong and got corrected from a real screen where wrapper containers rendered with unwanted shadows until `None` was set explicitly. If a round-trip does strip it, re-adding costs nothing; omitting it can cost you a visible shadow. Treat `DropShadow` as a property you always state on a `GroupContainer`.
+- **Some default-valued properties are stripped.** A few `Size`/`Height`/`VerticalAlign` values that matched defaults were dropped on re-export. `BorderStyle: =BorderStyle.None` was **kept**. **`DropShadow: =DropShadow.None` is NOT reliably a no-op — write it anyway.** An earlier version of this skill claimed `None` was the default and told you to skip it; that guidance was wrong and got corrected from a real screen where wrapper containers rendered with unwanted shadows until `None` was set explicitly. If a round-trip does strip it, re-adding costs nothing; omitting it can cost you a visible shadow. Treat `DropShadow` as a property you always state on a scaffolding `GroupContainer` (one with no solid `Fill` of its own); only a painted surface or hairline with a solid `Fill` may omit it, as described above.
 - **Colliding control names get a `_2`/`_3` suffix.** A second screen reusing the same control names (e.g. another `SearchBox`, `LogoIcon`, `NavIcon`) comes back as `SearchBox_2`, `LogoIcon_2`, … This is the signal to **factor shared chrome (sidebar, top bar, nav) into one `CanvasComponent`** referenced by every screen instead of copying it per screen.
 - Formulas survive intact — the colon-space concat (`="FICA:" & " All"`), `Switch` badge colors, and `Parent.TemplateWidth` wraps all came back unchanged.
 
@@ -99,7 +99,7 @@ See [validate.py](validate.py).
 | Paste fails / "mapping values not allowed" | colon-space in a `=` value | reword or split label |
 | Right columns + buttons run off-screen | `FillPortions` horizontal distribution | explicit `Parent.Width * fraction`, sum to 1.0 |
 | Badge/icons jammed at far left of a gallery row | `Classic/*` reading `Parent.TemplateWidth` (=0) | wrap in modern `GroupContainer`, fixed inner `X` |
-| Stray opaque block behind only one column of a gallery row | a positioning-wrapper `GroupContainer` has a `Fill` | set the wrapper `Fill: =RGBA(0,0,0,0)`; draw row backgrounds with a separate full-width control placed first |
+| Stray opaque block behind only one column of a gallery row | a positioning-wrapper `GroupContainer` has a `Fill` | remove the wrapper's `Fill` line (a container is transparent without one); draw row backgrounds with a separate full-width control placed first |
 | Faint border outline around containers, cards or wrappers | `GroupContainer` default `BorderStyle` is a visible border | set `BorderStyle: =BorderStyle.None` |
 | Grey smudge / halo around a wrapper that has no visible surface | `DropShadow` left unstated on a scaffolding `GroupContainer`, or set to `Light` by habit | set `DropShadow: =DropShadow.None`; keep `Light` for elevated card surfaces only |
 | Button shows as an empty box | `ModernButton` in nested layout | `Classic/Button` (+ `Classic/Icon`) |
@@ -120,7 +120,7 @@ See [validate.py](validate.py).
 - A `Label` with an `OnSelect` - any clickable text that isn't a `Classic/Button`.
 - A screen that is a long flat list of direct children instead of one `GroupContainer` per region.
 - A `GroupContainer` whose only job is wrapping/positioning a single child but that carries a non-transparent `Fill` (paints a stray block over its sub-column).
-- A `GroupContainer` missing `BorderStyle: =BorderStyle.None` (its default border leaks through) **or missing an explicit `DropShadow`** — state it, and default to `=DropShadow.None`.
+- A `GroupContainer` missing `BorderStyle: =BorderStyle.None` (its default border leaks through) **or, when it has no solid `Fill` of its own, missing an explicit `DropShadow`** — state it, and default to `=DropShadow.None`.
 - `DropShadow: =DropShadow.Light` on a container that is scaffolding rather than an elevated surface (region wrapper, positioning wrap, transparent card/panel wrapper). If it has no solid `Fill` of its own, it wants `None`.
 - `Fill: =RGBA(0,0,0,0)` written on a `GroupContainer` — omit the `Fill` line instead; the explicit transparent RGBA is for `Classic/Button`.
 - An `Icon.*` name you haven't confirmed exists (unknown names render blank — `Icon.Documents` is the classic trap; use `Icon.DocumentPDF`).
