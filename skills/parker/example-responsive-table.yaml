@@ -13,15 +13,21 @@
 #
 #  3. Every GroupContainer sets BorderStyle: =BorderStyle.None and
 #     DropShadow: =DropShadow.None to suppress Studio's default border/shadow.
-#     (Use DropShadow: =DropShadow.Light instead of None to emphasize a card.)
+#     (Reserve DropShadow: =DropShadow.Light for an elevated card with its own
+#     solid Fill; a transparent wrapper such as CellCentre/CellAction keeps
+#     =DropShadow.None.)
 #
 #  4. The row action is a real Classic/Button (text) / Classic/Icon (icon-only),
 #     never a Label with an OnSelect - a Label gives no hover/press feedback,
 #     no focus ring and no keyboard reach. The Centre badge is the inverse: a
 #     Classic/Button made non-interactive with DisplayMode.View + HoverFill.
 #
-#  5. Each region (header row, gallery, each table cell) is its own named
-#     GroupContainer, so it can be moved, hidden or restyled as one unit.
+#  5. The header row is its own named GroupContainer (TableHeader), and the
+#     Gallery is itself a named container, so each region can be moved, hidden
+#     or restyled as one unit. Inside the row, only a cell holding a Classic/*
+#     control gets a GroupContainer (CellCentre, CellAction - see point 2); the
+#     modern Label cell (CellName) reads Parent.TemplateWidth itself and needs
+#     no wrapper (SKILL.md "Don't over-nest").
 #
 # Validate with:  python validate.py example-responsive-table.yaml
 Screens:

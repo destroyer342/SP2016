@@ -18,15 +18,19 @@ Checks (see the parker skill, SKILL.md, for the why behind each):
   5. ModernButton usage (warns: can render blank in nested auto-layouts).
   6. Horizontal auto-layout with 2+ FillPortions children (warns: distribution
      proved unreliable; prefer explicit Parent.Width * fraction).
-  7. A positioning-wrapper GroupContainer (its only child is a Classic/* control)
-     carrying an opaque Fill (warns: paints a stray block over only its
-     sub-column; remove the wrapper's Fill line and draw backgrounds with a
-     separate full-width control).
+  7. A positioning-wrapper GroupContainer carrying an opaque Fill (warns: paints
+     a stray block over only its sub-column; remove the wrapper's Fill line, set
+     DropShadow: =DropShadow.None, and draw backgrounds with a separate
+     full-width control). Two triggers: the wrapper's only child is a Classic/*
+     control, or its Width is a fraction of Parent.TemplateWidth (a gallery
+     sub-column), whatever it holds. Other multi-child wrappers are not
+     detected - check them by eye.
   8. GroupContainer chrome (all warnings):
      a. BorderStyle missing - the container's default is a visible border, so
         every GroupContainer sets BorderStyle: =BorderStyle.None.
      b. A GroupContainer with no solid Fill of its own (scaffolding) missing an
-        explicit DropShadow, or carrying DropShadow.Light - scaffolding wants
+        explicit DropShadow, or setting it to anything other than
+        =DropShadow.None (e.g. Light) - scaffolding wants
         =DropShadow.None; Light is for an elevated solid-Fill card only. Do not
         rely on DropShadow defaulting to None. A solid-Fill painted surface or
         hairline is not flagged when it omits DropShadow.
@@ -45,7 +49,9 @@ Checks (see the parker skill, SKILL.md, for the why behind each):
      (warns: group each region into its own named GroupContainer so it can be
      moved, hidden, restyled or duplicated as one unit).
 
-Exit code 0 if no ERRORS (warnings allowed), 1 otherwise.
+Messages name the control instance and its type, e.g. "CellAction (GroupContainer@1.5.0)".
+Exit code 0 if no ERRORS (warnings allowed), 1 otherwise; an unreadable, empty
+or non-YAML file is an ERROR.
 Requires: pyyaml  (pip install pyyaml)
 """
 import re
@@ -111,23 +117,31 @@ def is_live(formula):
     return s not in ("", "false", "true", 'Blank()')
 
 
+def children(node):
+    """A control's Children list, or [] when it is missing or malformed."""
+    kids = node.get("Children") if isinstance(node, dict) else None
+    return kids if isinstance(kids, list) else []
+
+
 def load(path):
     with open(path, encoding="utf-8") as fh:
         return yaml.safe_load(fh)
 
 
-def walk(node, fn):
+def walk(node, fn, name="?"):
+    """Call fn(control_node, control_name) for every node that has a Control."""
     if isinstance(node, dict):
-        fn(node)
-        for v in node.values():
-            walk(v, fn)
+        if node.get("Control"):
+            fn(node, name)
+        for k, v in node.items():
+            walk(v, fn, k)
     elif isinstance(node, list):
         for v in node:
-            walk(v, fn)
+            walk(v, fn, name)
 
 
 def collect_vocab(doc, controls):
-    def visit(n):
+    def visit(n, _name):
         ctrl = n.get("Control")
         if ctrl:
             props = (n.get("Properties") or {}).keys()
@@ -136,32 +150,33 @@ def collect_vocab(doc, controls):
 
 
 def audit(doc, proven):
-    def visit(n):
+    def visit(n, name):
         ctrl = n.get("Control")
         if not ctrl:
             return
         props = n.get("Properties") or {}
+        label = f"{name} ({ctrl})"  # display only; logic below uses the raw type
         # 2. unproven control
         if proven and ctrl not in proven:
-            ERRORS.append(f"unproven control type: {ctrl}")
+            ERRORS.append(f"{label}: unproven control type")
         # 3. unproven property names (only when we have a baseline for the control)
         if proven.get(ctrl):
             for p in props:
                 if p not in proven[ctrl]:
-                    WARNINGS.append(f"{ctrl}: property '{p}' not seen on this control in existing screens")
+                    WARNINGS.append(f"{label}: property '{p}' not seen on this control type in existing screens")
         # 4. classic control + TemplateWidth
         if ctrl.startswith("Classic/"):
             for k in ("X", "Y", "Width", "Height"):
                 if "TemplateWidth" in str(props.get(k, "")):
-                    ERRORS.append(f"{ctrl}.{k} uses Parent.TemplateWidth - classic controls read 0; wrap in a modern GroupContainer")
+                    ERRORS.append(f"{label}.{k} uses Parent.TemplateWidth - classic controls read 0; wrap in a modern GroupContainer")
         # 5. ModernButton
         if ctrl == "ModernButton@1.0.0" or ctrl.startswith("ModernButton"):
-            WARNINGS.append("ModernButton used - can render blank in nested auto-layouts; prefer Classic/Button")
+            WARNINGS.append(f"{label}: ModernButton used - can render blank in nested auto-layouts; prefer Classic/Button")
         # 6. horizontal auto-layout with multiple FillPortions children
         if ctrl.startswith("GroupContainer") and n.get("Variant") == "AutoLayout" \
                 and "Horizontal" in str(props.get("LayoutDirection", "")):
             n_fill = 0
-            for child in (n.get("Children") or []):
+            for child in children(n):
                 if not isinstance(child, dict):
                     continue
                 for cv in child.values():
@@ -171,20 +186,28 @@ def audit(doc, proven):
                         if "FillPortions" in (cv.get("Properties") or {}) and fp.strip().lstrip("=").strip() not in ("0", ""):
                             n_fill += 1
             if n_fill > 1:
-                WARNINGS.append("horizontal auto-layout with 2+ FillPortions children - distribution is unreliable for wide content; prefer explicit Parent.Width * fraction")
-        # 7. positioning-wrapper GroupContainer with an opaque Fill
+                WARNINGS.append(f"{label}: horizontal auto-layout with 2+ FillPortions children - distribution is unreliable for wide content; prefer explicit Parent.Width * fraction")
+        # 7. positioning-wrapper GroupContainer with an opaque Fill. Triggers:
+        #    (a) its only child is a Classic/* control, or (b) it is a gallery
+        #    sub-column (Width is a fraction of Parent.TemplateWidth).
         if ctrl.startswith("GroupContainer") and "Fill" in props and not is_transparent(props["Fill"]):
-            kids = [c for c in (n.get("Children") or []) if isinstance(c, dict)]
+            kids = [c for c in children(n) if isinstance(c, dict)]
+            reason = None
             if len(kids) == 1:
                 inner = next((v for v in kids[0].values() if isinstance(v, dict)), None)
                 inner_ctrl = str((inner or {}).get("Control", ""))
                 if inner_ctrl.startswith("Classic/"):
-                    WARNINGS.append(
-                        f"{ctrl} wraps a single {inner_ctrl} but has an opaque Fill ({props['Fill']}) - "
-                        "a positioning-only wrapper paints a stray block over just its sub-column; "
-                        "remove its Fill line (a GroupContainer is transparent without one) and draw any "
-                        "row/card background with a separate full-width control"
-                    )
+                    reason = f"wraps a single {inner_ctrl}"
+            if reason is None and re.search(r"TemplateWidth\s*\*", str(props.get("Width", ""))):
+                reason = "is a gallery sub-column (Width is a fraction of Parent.TemplateWidth)"
+            if reason:
+                WARNINGS.append(
+                    f"{label} {reason} but has an opaque Fill ({props['Fill']}) - "
+                    "a positioning-only wrapper paints a stray block over just its sub-column; "
+                    "remove its Fill line (a GroupContainer is transparent without one), set "
+                    "DropShadow: =DropShadow.None (it is then scaffolding), and draw any "
+                    "row/card background with a separate full-width control"
+                )
         # 8. GroupContainer should suppress Studio's default chrome: BOTH the
         #    border AND the shadow.
         #    8a. BorderStyle.None is not the container default.
@@ -195,32 +218,32 @@ def audit(doc, proven):
         #    8c. Transparency is expressed by omitting Fill, not RGBA(0,0,0,0).
         if ctrl.startswith("GroupContainer"):
             if "BorderStyle" not in props:
-                WARNINGS.append(f"{ctrl} is missing BorderStyle: =BorderStyle.None - add it to suppress Studio's default container border")
+                WARNINGS.append(f"{label} is missing BorderStyle: =BorderStyle.None - add it to suppress Studio's default container border")
             fill = props.get("Fill")
             scaffolding = fill is None or is_transparent(fill)
             if "DropShadow" not in props:
                 if scaffolding:
                     WARNINGS.append(
-                        f"{ctrl} has no Fill of its own and is missing DropShadow: =DropShadow.None - "
+                        f"{label} has no Fill of its own and is missing DropShadow: =DropShadow.None - "
                         "state it explicitly; an unstated shadow on a scaffolding container renders as a "
                         "grey smudge with no surface under it"
                     )
-            elif scaffolding and "Light" in str(props["DropShadow"]):
+            elif scaffolding and str(props["DropShadow"]).strip().lstrip("=").strip() != "DropShadow.None":
                 WARNINGS.append(
-                    f"{ctrl} uses DropShadow.Light but has no solid Fill - a positioning/region wrapper "
-                    "should be =DropShadow.None; reserve Light for an elevated card surface"
+                    f"{label} has no solid Fill but sets DropShadow: {props['DropShadow']} - a positioning/region "
+                    "wrapper should be =DropShadow.None; reserve Light for an elevated solid-Fill card surface"
                 )
             # 8c. a container's transparency is expressed by omitting Fill, not by RGBA(0,0,0,0)
             if fill is not None and is_transparent(fill):
                 WARNINGS.append(
-                    f"{ctrl} sets Fill: =RGBA(0,0,0,0) - on a GroupContainer omit the Fill line entirely; "
+                    f"{label} sets Fill: =RGBA(0,0,0,0) - on a GroupContainer omit the Fill line entirely; "
                     "the explicit transparent RGBA belongs on Classic/Button"
                 )
         # 9. child overflows a fixed-Height ManualLayout GroupContainer
         if ctrl.startswith("GroupContainer") and n.get("Variant") == "ManualLayout":
             ph = num(props.get("Height"))
             if ph is not None:
-                for child in (n.get("Children") or []):
+                for child in children(n):
                     if not isinstance(child, dict):
                         continue
                     cname = next(iter(child), "?")
@@ -229,7 +252,7 @@ def audit(doc, proven):
                     cy, ch = num(cp.get("Y")), num(cp.get("Height"))
                     if cy is not None and ch is not None and cy + ch > ph + 1:
                         WARNINGS.append(
-                            f"{ctrl} (Height {ph:g}) child '{cname}' overflows: Y {cy:g} + Height {ch:g} "
+                            f"{label} (Height {ph:g}) child '{cname}' overflows: Y {cy:g} + Height {ch:g} "
                             f"= {cy + ch:g} > {ph:g} - it is clipped/detached; raise the parent Height or make it a sibling"
                         )
         # 10. known-invalid icon names (Studio renders nothing)
@@ -237,11 +260,11 @@ def audit(doc, proven):
             sval = str(v)
             for bad, good in INVALID_ICONS.items():
                 if re.search(r"\b" + re.escape(bad) + r"\b", sval):
-                    WARNINGS.append(f"{bad} is not a valid Power Apps icon (property {k} on {ctrl}); use {good}")
+                    WARNINGS.append(f"{bad} is not a valid Power Apps icon (property {k} on {label}); use {good}")
         # 11. clickable Label - must be a button control
         if ctrl.startswith("Label") and is_live(props.get("OnSelect", "")):
             ERRORS.append(
-                f"{ctrl} has a live OnSelect - clickable text must be a Classic/Button "
+                f"{label} has a live OnSelect - clickable text must be a Classic/Button "
                 "(a Label has no hover/press feedback, focus ring or keyboard reach); "
                 "use Classic/Icon for an icon-only tap target"
             )
@@ -250,11 +273,15 @@ def audit(doc, proven):
 
 def audit_screens(doc):
     """12. Flag screens whose regions were never grouped into containers."""
-    screens = (doc or {}).get("Screens") or {}
+    if not isinstance(doc, dict):
+        return
+    screens = doc.get("Screens") or {}
     if not isinstance(screens, dict):
         return
     for sname, sbody in screens.items():
-        kids = (sbody or {}).get("Children") or []
+        if not isinstance(sbody, dict):
+            continue
+        kids = children(sbody)
         leaves = 0
         for child in kids:
             if not isinstance(child, dict):
@@ -285,6 +312,12 @@ def main():
         if "mapping values are not allowed" in msg:
             hint = "  HINT: a `=` value likely contains a colon+space (e.g. =\"Status: Ready\"). Reword or split."
         sys.exit(f"ERROR: {new_file} is not valid YAML:\n{msg}\n{hint}")
+    except (OSError, UnicodeDecodeError) as e:  # UnicodeDecodeError is a ValueError, not an OSError
+        sys.exit(f"ERROR: cannot read {new_file}: {e}")
+    if doc is None:
+        sys.exit(f"ERROR: {new_file} is empty")
+    if not isinstance(doc, (dict, list)):
+        sys.exit(f"ERROR: {new_file} is not a screen or control list")
 
     proven = {}
     for r in refs:
