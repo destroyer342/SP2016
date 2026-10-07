@@ -1,0 +1,167 @@
+# Minimal CORRECT pattern for a responsive data table in Power Apps pa-yaml.
+# Embodies the non-obvious fixes from the parker skill:
+#
+#  1. Columns use explicit `Parent.Width * <fraction>` (NOT FillPortions).
+#     The header row and the gallery rows use the SAME fractions + X offsets,
+#     so the columns line up. Fractions sum to ~1.0 (Name .45, Centre .25, Action .30).
+#
+#  2. A Classic control inside a modern Gallery (badge button, action icon) is
+#     WRAPPED in a modern GroupContainer positioned by `Parent.TemplateWidth`;
+#     the Classic control gets a FIXED offset X inside the wrapper. (Classic
+#     controls read 0 from Parent.TemplateWidth and would otherwise jump to X=0.)
+#     The wrapper carries NO Fill (stays transparent) so it never paints a block.
+#
+#  3. Every GroupContainer sets BorderStyle: =BorderStyle.None and
+#     DropShadow: =DropShadow.None to suppress Studio's default border/shadow.
+#     (Use DropShadow: =DropShadow.Light instead of None to emphasize a card.)
+
+#  4. The row action is a real Classic/Button (text) / Classic/Icon (icon-only),
+#     never a Label with an OnSelect - a Label gives no hover/press feedback,
+#     no focus ring and no keyboard reach. The Centre badge is the inverse: a
+#     Classic/Button made non-interactive with DisplayMode.View + HoverFill.
+#
+#  5. Each region (header row, gallery, each table cell) is its own named
+#     GroupContainer, so it can be moved, hidden or restyled as one unit.
+#
+# Validate with:  python validate.py example-responsive-table.yaml
+Screens:
+  ExampleTable:
+    Properties:
+      OnVisible: |-
+        =ClearCollect(colExample, {Name: "Alice", Centre: "NA05"}, {Name: "Bob", Centre: "NA08"})
+    Children:
+      - TableHeader:
+          Control: GroupContainer@1.5.0
+          Variant: ManualLayout
+          Properties:
+            BorderStyle: =BorderStyle.None
+            DropShadow: =DropShadow.None
+            Fill: =RGBA(0, 168, 142, 1)
+            Height: =44
+            Width: =Parent.Width - 40
+            X: =20
+            Y: =20
+          Children:
+            - HdrName:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =RGBA(255, 255, 255, 1)
+                  FontWeight: =FontWeight.Bold
+                  Height: =Parent.Height
+                  PaddingLeft: =12
+                  Text: ="Name"
+                  VerticalAlign: =VerticalAlign.Middle
+                  Width: =Parent.Width * 0.45
+                  X: =0
+                  Y: =0
+            - HdrCentre:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =RGBA(255, 255, 255, 1)
+                  FontWeight: =FontWeight.Bold
+                  Height: =Parent.Height
+                  PaddingLeft: =12
+                  Text: ="Centre"
+                  VerticalAlign: =VerticalAlign.Middle
+                  Width: =Parent.Width * 0.25
+                  X: =Parent.Width * 0.45
+                  Y: =0
+            - HdrAction:
+                Control: Label@2.5.1
+                Properties:
+                  Color: =RGBA(255, 255, 255, 1)
+                  FontWeight: =FontWeight.Bold
+                  Height: =Parent.Height
+                  PaddingLeft: =12
+                  Text: ="Action"
+                  VerticalAlign: =VerticalAlign.Middle
+                  Width: =Parent.Width * 0.30
+                  X: =Parent.Width * 0.70
+                  Y: =0
+      - ExampleGallery:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            Height: =300
+            Items: =colExample
+            TemplatePadding: =0
+            TemplateSize: =48
+            Width: =Parent.Width - 40
+            X: =20
+            Y: =64
+          Children:
+            - CellName:
+                Control: Label@2.5.1
+                Properties:
+                  Height: =44
+                  PaddingLeft: =12
+                  Text: =ThisItem.Name
+                  VerticalAlign: =VerticalAlign.Middle
+                  Width: =Parent.TemplateWidth * 0.45
+                  X: =0
+                  Y: =0
+            - CellCentre:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  BorderStyle: =BorderStyle.None
+                  DropShadow: =DropShadow.None
+                  Height: =44
+                  Width: =Parent.TemplateWidth * 0.25
+                  X: =Parent.TemplateWidth * 0.45
+                  Y: =0
+                Children:
+                  - CentreBadge:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Color: =RGBA(23, 44, 84, 1)
+                        DisplayMode: =DisplayMode.View
+                        Fill: =RGBA(214, 245, 232, 1)
+                        Height: =24
+                        HoverFill: =Self.Fill
+                        RadiusBottomLeft: =4
+                        RadiusBottomRight: =4
+                        RadiusTopLeft: =4
+                        RadiusTopRight: =4
+                        Text: =ThisItem.Centre
+                        Width: =48
+                        X: =12
+                        Y: =10
+            - CellAction:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  BorderStyle: =BorderStyle.None
+                  DropShadow: =DropShadow.None
+                  Height: =44
+                  Width: =Parent.TemplateWidth * 0.30
+                  X: =Parent.TemplateWidth * 0.70
+                  Y: =0
+                Children:
+                  - ActionEdit:
+                      Control: Classic/Icon@2.5.0
+                      Properties:
+                        Color: =RGBA(90, 90, 90, 1)
+                        Height: =16
+                        Icon: =Icon.Edit
+                        OnSelect: =Notify("Edit " & ThisItem.Name, NotificationType.Information)
+                        Width: =16
+                        X: =12
+                        Y: =14
+                  - ActionView:
+                      Control: Classic/Button@2.2.0
+                      Properties:
+                        Color: =RGBA(255, 255, 255, 1)
+                        Fill: =RGBA(0, 168, 142, 1)
+                        Height: =24
+                        HoverFill: =RGBA(0, 140, 118, 1)
+                        OnSelect: =Notify("View " & ThisItem.Name, NotificationType.Information)
+                        RadiusBottomLeft: =4
+                        RadiusBottomRight: =4
+                        RadiusTopLeft: =4
+                        RadiusTopRight: =4
+                        Size: =10
+                        Text: ="View"
+                        Width: =56
+                        X: =40
+                        Y: =10
