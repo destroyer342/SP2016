@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 """Generate (or check) the shared chrome of the PEF canvas-app screens.
 
-Every form screen gets the same App bar, Project bar and Tab bar (DESIGN.md
-section 5.1); the Dashboard, Confirmation and Detailed Information screens get
-the App bar only. Control names carry the screen tag, so they stay unique.
+The app has 3 screens (DESIGN.md section 5.1):
+  scrDashboard     App bar only
+  scrPEF           App bar + Project bar + Tab bar; the tab bar switches gblTab, and
+                   each InfoPath view is a tab container (fgd<Tag>Body, Visible when
+                   gblTab = "<Key>")
+  scrConfirmation  App bar only
+Control names carry a tag, so they stay unique.
 
 Usage:
-    python tools/gen_chrome.py --skeleton   # write skeletons for missing screen files
-    python tools/gen_chrome.py --check      # verify each screen's chrome matches
-    python tools/gen_chrome.py --print Cvr  # print one screen's chrome YAML
+    python tools/gen_chrome.py --check      # verify each screen's chrome matches (default)
+    python tools/gen_chrome.py --write      # regenerate the chrome in place (after editing this file)
+    python tools/gen_chrome.py --print Pef  # print one screen's chrome YAML
 
 Requires: pyyaml
 """
@@ -28,32 +32,25 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 APP = os.path.dirname(HERE)
 SCREENS_DIR = os.path.join(APP, "screens")
 
-# (file, screen name, tag, kind)  kind: "form" = full chrome, "plain" = App bar only
+# (file, screen name, tag, kind)  kind: "pef" = App bar + Project bar + Tab bar, "plain" = App bar only
 SCREENS = [
     ("01-scrDashboard.pa.yaml", "scrDashboard", "Dsh", "plain"),
-    ("02-scrCoverPage.pa.yaml", "scrCoverPage", "Cvr", "form"),
-    ("03-scrHoursCosts.pa.yaml", "scrHoursCosts", "Hrs", "form"),
-    ("04-scrMotivations.pa.yaml", "scrMotivations", "Mot", "form"),
-    ("05-scrRevisions.pa.yaml", "scrRevisions", "Rev", "form"),
-    ("06-scrApprovals.pa.yaml", "scrApprovals", "Apr", "form"),
-    ("07-scrReview.pa.yaml", "scrReview", "Rvw", "form"),
-    ("08-scrClosure.pa.yaml", "scrClosure", "Cls", "form"),
-    ("09-scrConfirmation.pa.yaml", "scrConfirmation", "Cnf", "plain"),
-    ("10-scrDetailedInfo.pa.yaml", "scrDetailedInfo", "Dbg", "plain"),
+    ("02-scrPEF.pa.yaml", "scrPEF", "Pef", "pef"),
+    ("03-scrConfirmation.pa.yaml", "scrConfirmation", "Cnf", "plain"),
 ]
 
-# (key, caption, X, Width, target screen, Visible formula or None)
+# Tabs of scrPEF: (key, caption, X, Width, body tag, Visible formula or None).
+# The body of tab <key> is the container fgd<tag>Body (Visible when gblTab = "<key>").
 TABS = [
-    ("Cover", "Cover Page", 16, 108, "scrCoverPage", None),
-    ("Hours", "Hours & Costs", 128, 116, "scrHoursCosts", None),
-    ("Motivations", "Motivations", 248, 108, "scrMotivations", None),
-    ("Revisions", "Revisions", 360, 96, "scrRevisions", None),
-    ("Approvals", "Approvals", 460, 100, "scrApprovals", None),
-    ("Review", "Review & Submit", 564, 128, "scrReview", None),
-    ("Closure", "Closure", 696, 88, "scrClosure", "=gblPEF.Close"),
+    ("Cover", "Cover Page", 16, 108, "Cvr", None),
+    ("Hours", "Hours & Costs", 128, 116, "Hrs", None),
+    ("Motivations", "Motivations", 248, 108, "Mot", None),
+    ("Revisions", "Revisions", 360, 96, "Rev", None),
+    ("Approvals", "Approvals", 460, 100, "Apr", None),
+    ("Review", "Review & Submit", 564, 128, "Rvw", None),
+    ("Closure", "Closure", 696, 88, "Cls", "=gblPEF.Close"),
+    ("Details", "Detailed info", 788, 104, "Dbg", '=gblRole = "Administrator"'),
 ]
-ACTIVE_TAB = {"Cvr": "Cover", "Hrs": "Hours", "Mot": "Motivations", "Rev": "Revisions",
-              "Apr": "Approvals", "Rvw": "Review", "Cls": "Closure"}
 
 # ---- tokens (DESIGN.md section 4) ----
 PAGE = "=RGBA(243, 245, 248, 1)"
@@ -154,7 +151,7 @@ def button(name, text, x, y, w, h, kind, onselect=None, extra=None):
     return ctl(name, "Classic/Button@2.2.0", p)
 
 
-def app_bar(t):
+def app_bar(t, on_pef=False):
     return ctl(f"con{t}AppBar", "GroupContainer@1.5.0", {
         "BorderStyle": "=BorderStyle.None", "Fill": APPBAR,
         "X": "=0", "Y": "=0", "Width": "=Parent.Width", "Height": "=48",
@@ -169,7 +166,8 @@ def app_bar(t):
               size="=10", color=ON_DARK_MUTED, align="=Align.Right"),
         ctl(f"drp{t}Role", "Classic/DropDown@2.3.1", {
             "Items": "=colRoles", "Default": "=gblRole",
-            "OnChange": "=Set(gblRole, Self.Selected.Value);\n" + S_EDITMODE,
+            "OnChange": "=Set(gblRole, Self.Selected.Value);\n" + S_EDITMODE
+                        + ';\nIf(gblTab = "Details" && gblRole <> "Administrator", Set(gblTab, "Cover"))',
             "X": "=Parent.Width - 308", "Y": "=8", "Width": "=196", "Height": "=32",
             "Fill": SURFACE, "Color": TEXT, "BorderColor": SURFACE, "Font": FONT, "Size": "=10",
             "ChevronBackground": SURFACE, "ChevronFill": PRIMARY, "HoverFill": PRIMARY_TINT,
@@ -178,7 +176,8 @@ def app_bar(t):
         ctl(f"ico{t}Settings", "Classic/Icon@2.5.0", {
             "Icon": "=Icon.Settings", "Color": ON_DARK, "X": "=Parent.Width - 100", "Y": "=12",
             "Width": "=24", "Height": "=24", "Visible": '=gblRole = "Administrator"',
-            "OnSelect": "=Navigate(scrDetailedInfo, ScreenTransition.Fade)", "Tooltip": '="Detailed information"',
+            "OnSelect": '=Set(gblTab, "Details")' + ("" if on_pef else "; Navigate(scrPEF, ScreenTransition.Fade)"),
+            "Tooltip": '="Detailed information"',
         }),
         button(f"btn{t}Avatar", '=LookUp(colRolePeople, Role = gblRole, Initials)', "=Parent.Width - 56", "=8", "=32", "=32",
                "primary", extra={"DisplayMode": "=DisplayMode.View", "HoverFill": "=Self.Fill", "Size": "=10",
@@ -222,23 +221,20 @@ def project_bar(t):
 
 
 def tab_bar(t):
-    active = ACTIVE_TAB[t]
     kids = []
-    for key, caption, x, w, target, visible in TABS:
-        is_active = key == active
-        extra = {"Color": PRIMARY if is_active else MUTED,
-                 "FontWeight": "=FontWeight.Semibold" if is_active else "=FontWeight.Normal",
+    for key, caption, x, w, _tag, visible in TABS:
+        extra = {"Color": f'=If(gblTab = "{key}", RGBA(0, 94, 162, 1), RGBA(96, 94, 92, 1))',
+                 "FontWeight": f'=If(gblTab = "{key}", FontWeight.Semibold, FontWeight.Normal)',
                  "Tooltip": f'="{caption}"'}
         if visible:
             extra["Visible"] = visible
         kids.append(button(f"btn{t}Tab{key}", f'="{caption}"', f"={x}", "=8", f"={w}", "=32", "tab",
-                           onselect=f"=Navigate({target}, ScreenTransition.None)", extra=extra))
-        if is_active:
-            ax, aw, avis = x, w, visible
-    ind = {"Fill": PRIMARY, "X": f"={ax + 8}", "Y": "=44", "Width": f"={aw - 16}", "Height": "=3"}
-    if avis:
-        ind["Visible"] = avis
-    kids.append(ctl(f"rec{t}TabIndicator", "Rectangle@2.3.0", ind))
+                           onselect=f'=Set(gblTab, "{key}")', extra=extra))
+    sx = ", ".join(f'"{k}", {x + 8}' for k, _, x, w, _, _ in TABS)
+    sw = ", ".join(f'"{k}", {w - 16}' for k, _, x, w, _, _ in TABS)
+    kids.append(ctl(f"rec{t}TabIndicator", "Rectangle@2.3.0", {
+        "Fill": PRIMARY, "X": f"=Switch(gblTab, {sx}, 24)", "Y": "=44",
+        "Width": f"=Switch(gblTab, {sw}, 92)", "Height": "=3"}))
     kids.append(ctl(f"rec{t}TabBarLine", "Rectangle@2.3.0", {
         "Fill": HAIRLINE, "X": "=0", "Y": "=47", "Width": "=Parent.Width", "Height": "=1"}))
     kids.append(button(f"btn{t}CancelApproval", '="Cancel Approval"', "=Parent.Width - 452", "=8", "=140", "=32",
@@ -250,7 +246,7 @@ def tab_bar(t):
                        extra={"Visible": '=gblRole in ["Applicant (CI)", "Administrator"]',
                               "Tooltip": '="Save the PEF without starting approval"'}))
     kids.append(button(f"btn{t}StartApproval", '="Start Approval"', "=Parent.Width - 176", "=8", "=160", "=32",
-                       "primary", onselect="=Navigate(scrReview, ScreenTransition.Fade)",
+                       "primary", onselect='=Set(gblTab, "Review")',
                        extra={"Visible": '=gblPEF.Status in ["Draft", "Rejected"] && gblRole = "Applicant (CI)"',
                               "Tooltip": '="Review the PEF and submit it for approval"'}))
     return ctl(f"con{t}TabBar", "GroupContainer@1.5.0", {
@@ -259,56 +255,83 @@ def tab_bar(t):
     }, variant="ManualLayout", children=kids)
 
 
+def emit_node(lines, indent, name, node):
+    """Emit an already-parsed control (used by --write to keep screen bodies unchanged)."""
+    pad = " " * indent
+    lines.append(f"{pad}- {name}:")
+    lines.append(f"{pad}    Control: {node['Control']}")
+    if node.get("Variant"):
+        lines.append(f"{pad}    Variant: {node['Variant']}")
+    lines.append(f"{pad}    Properties:")
+    for k, v in sorted((node.get("Properties") or {}).items()):
+        head, body = fmt(v)
+        lines.append(f"{pad}      {k}: {head}")
+        for b in body or []:
+            lines.append(f"{pad}        {b}")
+    if node.get("Children"):
+        lines.append(f"{pad}    Children:")
+        for child in node["Children"]:
+            cname = next(iter(child))
+            emit_node(lines, indent + 6, cname, child[cname])
+
+
+def write_chrome():
+    """Regenerate the chrome of every screen in place; bodies are re-emitted unchanged."""
+    for fname, screen, tag, kind in SCREENS:
+        path = os.path.join(SCREENS_DIR, fname)
+        with open(path, encoding="utf-8") as fh:
+            text = fh.read()
+        comment = text.splitlines()[0] if text.startswith("#") else f"# {screen} - see DESIGN.md."
+        body = yaml.safe_load(text)["Screens"][screen]
+        names = set(chrome_names(tag, kind))
+        lines = [comment, "Screens:", f"  {screen}:", "    Properties:"]
+        for k, v in sorted((body.get("Properties") or {}).items()):
+            head, block = fmt(v)
+            lines.append(f"      {k}: {head}")
+            for b in block or []:
+                lines.append(f"        {b}")
+        lines.append("    Children:")
+        for child in body.get("Children") or []:
+            cname = next(iter(child))
+            if cname not in names:
+                emit_node(lines, 6, cname, child[cname])
+        for c in chrome(tag, kind):
+            c(lines, 6)
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write("\n".join(lines) + "\n")
+        print(f"rewritten {fname}")
+
+
 def chrome(tag, kind):
-    if kind == "form":
-        return [app_bar(tag), project_bar(tag), tab_bar(tag)]
+    if kind == "pef":
+        return [app_bar(tag, on_pef=True), project_bar(tag), tab_bar(tag)]
     return [app_bar(tag)]
 
 
 def chrome_names(tag, kind):
-    return [f"con{tag}AppBar"] + ([f"con{tag}ProjectBar", f"con{tag}TabBar"] if kind == "form" else [])
+    return [f"con{tag}AppBar"] + ([f"con{tag}ProjectBar", f"con{tag}TabBar"] if kind == "pef" else [])
 
 
-def build_screen(screen, tag, kind, body, card_height=800, on_visible_extra=None, comment=None):
-    """Full screen YAML: generated chrome + your body controls.
+def build_screen(screen, tag, body, on_visible_extra=None, comment=None):
+    """YAML for a plain screen (Dashboard, Confirmation): your body controls + the generated App bar.
 
-    body: list of ctl()/label()/button() items.
-      form screens  -> the children of dcd<Tag>Body (inside fgd<Tag>Body at Y 160)
-      plain screens -> top-level children placed before the App bar (body starts at Y 48)
-    card_height: fixed Height of dcd<Tag>Body (form screens).
-    on_visible_extra: Power Fx appended to OnVisible (after S_RECALC/S_EDITMODE on form screens).
+    body: list of ctl()/label()/button() items placed before the App bar (body starts at Y 48).
+    The PEF form screen is edited in place; its tab bodies are the fgd<Tag>Body containers.
     """
     lines = [f"# {comment or screen + ' - see DESIGN.md.'} Chrome (last children) is generated by tools/gen_chrome.py.",
              "Screens:", f"  {screen}:", "    Properties:"]
     props = {"Fill": PAGE}
-    on_visible = []
-    if kind == "form":
-        on_visible += [S_RECALC, S_EDITMODE]
     if on_visible_extra:
-        on_visible.append(on_visible_extra)
-    if on_visible:
-        props["OnVisible"] = "=" + ";\n".join(on_visible)
+        props["OnVisible"] = "=" + on_visible_extra
     for k, v in sorted(props.items()):
         head, block = fmt(v)
         lines.append(f"      {k}: {head}")
         for b in block or []:
             lines.append(f"        {b}")
     lines.append("    Children:")
-    if kind == "form":
-        top = [ctl(f"fgd{tag}Body", "FluidGrid@2.3.0", {
-            "X": "=0", "Y": "=160", "Width": "=Parent.Width", "Height": "=Parent.Height - 160"},
-            children=[ctl(f"dcd{tag}Body", "DataCard@1.0.2", {
-                "X": "=0", "Y": "=0", "Width": "=Parent.Width", "Height": f"={card_height}"}, children=body)])]
-    else:
-        top = list(body)
-    for c in top + chrome(tag, kind):
+    for c in list(body) + chrome(tag, "plain"):
         c(lines, 6)
     return "\n".join(lines) + "\n"
-
-
-def skeleton(screen, tag, kind):
-    y = "=24" if kind == "form" else "=72"
-    return build_screen(screen, tag, kind, [label(f"lbl{tag}BodyPlaceholder", '="Body goes here"', "=24", y, "=400", "=32")])
 
 
 def chrome_yaml(tag, kind):
@@ -340,6 +363,15 @@ def check():
             if by_name.get(name) != item:
                 print(f"DRIFT    {fname}: {name} differs from the generated chrome")
                 bad += 1
+        if kind == "pef":
+            for key, _cap, _x, _w, btag, _vis in TABS:
+                fgd = by_name.get(f"fgd{btag}Body")
+                if not fgd:
+                    print(f"MISSING  {fname}: tab container fgd{btag}Body for tab '{key}'")
+                    bad += 1
+                elif str((fgd[f"fgd{btag}Body"].get("Properties") or {}).get("Visible", "")).strip() != f'=gblTab = "{key}"':
+                    print(f"DRIFT    {fname}: fgd{btag}Body must have Visible: =gblTab = \"{key}\"")
+                    bad += 1
         order = [next(iter(k)) for k in kids if isinstance(k, dict)]
         tail = order[-len(expected):]
         if tail != chrome_names(tag, kind):
@@ -351,16 +383,8 @@ def check():
 
 def main():
     arg = sys.argv[1] if len(sys.argv) > 1 else "--check"
-    if arg == "--skeleton":
-        os.makedirs(SCREENS_DIR, exist_ok=True)
-        for fname, screen, tag, kind in SCREENS:
-            path = os.path.join(SCREENS_DIR, fname)
-            if os.path.exists(path):
-                print(f"exists   {fname}")
-                continue
-            with open(path, "w", encoding="utf-8") as fh:
-                fh.write(skeleton(screen, tag, kind))
-            print(f"written  {fname}")
+    if arg == "--write":
+        write_chrome()
     elif arg == "--print":
         tag = sys.argv[2]
         kind = next(k for _, _, t, k in SCREENS if t == tag)
