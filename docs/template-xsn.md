@@ -113,7 +113,9 @@ Every view except PrintView and Detailed Information has buttons to move between
 
 ### Cover Page layout
 
-Based on a screenshot of a live form. The header shows the Mintek logo, the title *Project Establishment Form*, the division name and the project number. Below it, a red banner shows `Workflow_State`.
+![Cover Page of a filled-in Project Establishment Form, open in InfoPath Filler](infopath%20ui.png)
+
+Based on the screenshot above of a live form. The header shows the Mintek logo, the title *Project Establishment Form*, the division name and the project number. Below it, a red banner shows `Workflow_State`.
 
 | Area | Fields |
 |---|---|
