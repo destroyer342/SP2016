@@ -1,0 +1,190 @@
+# Project Establishment Forms (PEF) - canvas app, App object.
+# OnStart loads all demo data (no SharePoint, Dataverse or Nintex connections).
+# Names, fields and snippets are specified in DESIGN.md.
+App:
+  Properties:
+    OnStart: |-
+      =Set(gblDemoLoaded, false);
+      // ---------- Session ----------
+      Set(gblRole, "Applicant (CI)");
+      Set(gblShowErrors, false);
+      Set(gblSelectedSBU, 1);
+      Set(gblConfirmation, {Title: "", Message: "", Kind: "Info"});
+      ClearCollect(colRoles, ["Applicant (CI)", "Checker", "Head", "Divisional Manager", "General Manager", "Administrator"]);
+      ClearCollect(colRolePeople,
+          {Role: "Applicant (CI)", Person: "Lerato Mokoena", Initials: "LM", Position: "Senior Scientist, Physical Metallurgy"},
+          {Role: "Checker", Person: "Pieter van Wyk", Initials: "PW", Position: "Principal Engineer, Physical Metallurgy"},
+          {Role: "Head", Person: "Ayesha Patel", Initials: "AP", Position: "Head, Physical Metallurgy"},
+          {Role: "Divisional Manager", Person: "Sipho Dlamini", Initials: "SD", Position: "Manager, Advanced Materials"},
+          {Role: "General Manager", Person: "Johan Botha", Initials: "JB", Position: "General Manager, Research and Development"},
+          {Role: "Administrator", Person: "Naledi Khumalo", Initials: "NK", Position: "Administration Officer (SAP)"}
+      );
+      // ---------- Lookups (stand-ins for the SharePoint lists the InfoPath form queried) ----------
+      ClearCollect(colDivisionInfo,
+          {DivisionalGroup: "Physical Metallurgy", Division: "Advanced Materials", DivisionCode: "AMD", Prefix: "AD", CostCentre: "21000", WorkCentre: "21900", Head: "Ayesha Patel", HeadMintekNo: "1295", Manager: "Sipho Dlamini", GeneralManager: "Johan Botha", AdminOfficer: "Naledi Khumalo"},
+          {DivisionalGroup: "Nanotechnology", Division: "Advanced Materials", DivisionCode: "AMD", Prefix: "AN", CostCentre: "21100", WorkCentre: "21950", Head: "Thabo Nkosi", HeadMintekNo: "1302", Manager: "Sipho Dlamini", GeneralManager: "Johan Botha", AdminOfficer: "Naledi Khumalo"},
+          {DivisionalGroup: "Pyrometallurgy", Division: "Pyrometallurgy", DivisionCode: "PYD", Prefix: "PY", CostCentre: "31000", WorkCentre: "31900", Head: "Grant Fourie", HeadMintekNo: "1188", Manager: "Karen Naidoo", GeneralManager: "Johan Botha", AdminOfficer: "Zanele Mthembu"},
+          {DivisionalGroup: "Hydrometallurgy", Division: "Hydrometallurgy", DivisionCode: "HMD", Prefix: "HM", CostCentre: "41000", WorkCentre: "41900", Head: "Refilwe Molefe", HeadMintekNo: "1240", Manager: "David Pillay", GeneralManager: "Johan Botha", AdminOfficer: "Zanele Mthembu"},
+          {DivisionalGroup: "Mineral Processing", Division: "Mineral Processing", DivisionCode: "MPD", Prefix: "MP", CostCentre: "51000", WorkCentre: "51900", Head: "Marius de Klerk", HeadMintekNo: "1150", Manager: "Busisiwe Zulu", GeneralManager: "Johan Botha", AdminOfficer: "Zanele Mthembu"}
+      );
+      ClearCollect(colRevenueStreams,
+          {Title: "State Grant", Letter: "R", ServiceProfit: 0.1, IsCommercial: false},
+          {Title: "Contract Research", Letter: "E", ServiceProfit: 0.1, IsCommercial: false},
+          {Title: "Contract Work", Letter: "W", ServiceProfit: 0.1, IsCommercial: false},
+          {Title: "Cash", Letter: "C", ServiceProfit: 0.2, IsCommercial: true},
+          {Title: "Products and Services", Letter: "C", ServiceProfit: 0.2, IsCommercial: true}
+      );
+      ClearCollect(colSalesGroups, ["Z01 Gold", "Z02 Platinum Group Metal", "Z03 Ferrous metals/Iron Ore", "Z04 VAPS", "Z05 Industrial Minerals", "Z06 Not in use", "Z07 Uranium", "Z08 Base Metals", "Z09 Energy", "Z10 Coal", "Z11 Water", "Z12 Environment", "Z13 Industrial Minerals", "Z14 Diamond", "Z15 Light Metals"]);
+      ClearCollect(colWorkPackages, ["AM09 - CFP_MnFerromagnets", "AM04 - Titanium Powder Metallurgy", "AM12 - Additive Manufacturing", "AN03 - Nano-catalysts", "PY02 - DC Furnace Technology", "HM07 - Battery Metals Recovery", "MP05 - Fine Particle Flotation", "Commercial"]);
+      ClearCollect(colPICs,
+          {Title: "MNTV-274C0R-AMD - Mn Ferromagnets 2026", Url: "http://sheq/Processes/ProjectInformationCharts/MNTV-274C0R-AMD.xml"},
+          {Title: "MNTV-281C0R-AMD - Ti Alloy Powders", Url: "http://sheq/Processes/ProjectInformationCharts/MNTV-281C0R-AMD.xml"},
+          {Title: "MNTV-290C0R-PYD - DC Arc Furnace Trials", Url: "http://sheq/Processes/ProjectInformationCharts/MNTV-290C0R-PYD.xml"},
+          {Title: "MNTV-301C0R-HMD - Lithium Recovery Pilot", Url: "http://sheq/Processes/ProjectInformationCharts/MNTV-301C0R-HMD.xml"},
+          {Title: "MNTV-305C0R-MPD - Fine Coal Flotation", Url: "http://sheq/Processes/ProjectInformationCharts/MNTV-305C0R-MPD.xml"}
+      );
+      ClearCollect(colPeople,
+          {Name: "Lerato Mokoena", MintekNo: "8478", Position: "Senior Scientist", DivisionalGroup: "Physical Metallurgy"},
+          {Name: "Pieter van Wyk", MintekNo: "6120", Position: "Principal Engineer", DivisionalGroup: "Physical Metallurgy"},
+          {Name: "Ayesha Patel", MintekNo: "1295", Position: "Head", DivisionalGroup: "Physical Metallurgy"},
+          {Name: "Kagiso Moloi", MintekNo: "7731", Position: "Scientist", DivisionalGroup: "Nanotechnology"},
+          {Name: "Thandi Mabaso", MintekNo: "8012", Position: "Senior Technician", DivisionalGroup: "Physical Metallurgy"},
+          {Name: "Kobus Steyn", MintekNo: "5590", Position: "Engineer", DivisionalGroup: "Physical Metallurgy"},
+          {Name: "Thabo Nkosi", MintekNo: "1302", Position: "Head", DivisionalGroup: "Nanotechnology"},
+          {Name: "Naledi Khumalo", MintekNo: "4410", Position: "Administration Officer", DivisionalGroup: "Physical Metallurgy"},
+          {Name: "Sipho Dlamini", MintekNo: "1001", Position: "Manager", DivisionalGroup: "Physical Metallurgy"},
+          {Name: "Johan Botha", MintekNo: "1000", Position: "General Manager", DivisionalGroup: "Physical Metallurgy"},
+          {Name: "Grant Fourie", MintekNo: "1188", Position: "Head", DivisionalGroup: "Pyrometallurgy"},
+          {Name: "Sibusiso Ndlovu", MintekNo: "6634", Position: "Principal Engineer", DivisionalGroup: "Pyrometallurgy"},
+          {Name: "Refilwe Molefe", MintekNo: "1240", Position: "Head", DivisionalGroup: "Hydrometallurgy"},
+          {Name: "Nomsa Shabalala", MintekNo: "7105", Position: "Senior Engineer", DivisionalGroup: "Hydrometallurgy"},
+          {Name: "Marius de Klerk", MintekNo: "1150", Position: "Head", DivisionalGroup: "Mineral Processing"},
+          {Name: "Johannes Pretorius", MintekNo: "6870", Position: "Senior Engineer", DivisionalGroup: "Mineral Processing"},
+          {Name: "Zanele Mthembu", MintekNo: "4420", Position: "Administration Officer", DivisionalGroup: "Pyrometallurgy"}
+      );
+      ClearCollect(colServiceDivisions,
+          {Division: "Analytical Services", Head: "Mpho Radebe", CI: "Precious Sithole"},
+          {Division: "Mineralogy", Head: "Andile Mahlangu", CI: "Ruan Venter"},
+          {Division: "Pyrometallurgy", Head: "Grant Fourie", CI: "Sibusiso Ndlovu"},
+          {Division: "Hydrometallurgy", Head: "Refilwe Molefe", CI: "Nomsa Shabalala"},
+          {Division: "Mineral Processing", Head: "Marius de Klerk", CI: "Johannes Pretorius"},
+          {Division: "Measurement and Control", Head: "Leon Swart", CI: "Fatima Ismail"}
+      );
+      ClearCollect(colFinancialYears, ["FY2026", "FY2027"]);
+      ClearCollect(colGradeRates,
+          {Grade: "E1 - Chief Scientist", ActivityType: "Professional", FinancialYear: "FY2026", Rate: 1650},
+          {Grade: "E1 - Chief Scientist", ActivityType: "Professional", FinancialYear: "FY2027", Rate: 1745},
+          {Grade: "D3 - Principal Engineer", ActivityType: "Professional", FinancialYear: "FY2026", Rate: 1420},
+          {Grade: "D3 - Principal Engineer", ActivityType: "Professional", FinancialYear: "FY2027", Rate: 1500},
+          {Grade: "D1 - Senior Scientist", ActivityType: "Professional", FinancialYear: "FY2026", Rate: 1210},
+          {Grade: "D1 - Senior Scientist", ActivityType: "Professional", FinancialYear: "FY2027", Rate: 1280},
+          {Grade: "C4 - Scientist", ActivityType: "Professional", FinancialYear: "FY2026", Rate: 980},
+          {Grade: "C4 - Scientist", ActivityType: "Professional", FinancialYear: "FY2027", Rate: 1035},
+          {Grade: "C2 - Senior Technician", ActivityType: "Technical", FinancialYear: "FY2026", Rate: 720},
+          {Grade: "C2 - Senior Technician", ActivityType: "Technical", FinancialYear: "FY2027", Rate: 760},
+          {Grade: "B4 - Laboratory Assistant", ActivityType: "Technical", FinancialYear: "FY2026", Rate: 455},
+          {Grade: "B4 - Laboratory Assistant", ActivityType: "Technical", FinancialYear: "FY2027", Rate: 480},
+          {Grade: "M1 - Arc Furnace (machine hour)", ActivityType: "Machine", FinancialYear: "FY2026", Rate: 2400},
+          {Grade: "M1 - Arc Furnace (machine hour)", ActivityType: "Machine", FinancialYear: "FY2027", Rate: 2550}
+      );
+      ClearCollect(colCostElements,
+          {Title: "Consumables", CostElement: 510100},
+          {Title: "Laboratory chemicals and gases", CostElement: 510150},
+          {Title: "Travel and accommodation", CostElement: 520200},
+          {Title: "Internal analytical services", CostElement: 530300},
+          {Title: "Equipment hire", CostElement: 540100},
+          {Title: "External contractors", CostElement: 550500},
+          {Title: "Courier and freight", CostElement: 560100},
+          {Title: "Printing and stationery", CostElement: 570100}
+      );
+      ClearCollect(colProducts, ["Magnetic materials development", "Powder metallurgy", "Ferro-alloy testwork", "Pilot plant campaigns", "Process mineralogy", "Analytical services", "Technology licensing"]);
+      ClearCollect(colCurrencies, ["ZAR", "USD", "EUR", "GBP", "AUD"]);
+      ClearCollect(colProposals,
+          {ProposalNo: "PRP-AMD-26-014", Title: "Ti powder supply trials", Client: "Kalahari Aero Components", Site: "Kempton Park", Value: 1250000, Division: "Advanced Materials"},
+          {ProposalNo: "PRP-AMD-26-021", Title: "Magnet alloy prototyping", Client: "Vaal Ridge Alloys", Site: "Vanderbijlpark", Value: 640000, Division: "Advanced Materials"},
+          {ProposalNo: "PRP-PYD-26-008", Title: "Ferrochrome slag characterisation", Client: "Tshwane Chrome Smelters", Site: "Brits", Value: 385000, Division: "Pyrometallurgy"},
+          {ProposalNo: "PRP-HMD-26-011", Title: "Brine lithium recovery test programme", Client: "Karoo Brine Lithium", Site: "Upington", Value: 2100000, Division: "Hydrometallurgy"}
+      );
+      ClearCollect(colOrders,
+          {OrderNo: "PO-4500123456", Title: "Ti powder supply trials - phase 1", Client: "Kalahari Aero Components", ProposalNo: "PRP-AMD-26-014", Value: 45000, Currency: "USD", ExchangeRate: 18.2},
+          {OrderNo: "PO-4500123789", Title: "Ti powder supply trials - phase 2", Client: "Kalahari Aero Components", ProposalNo: "PRP-AMD-26-014", Value: 22000, Currency: "USD", ExchangeRate: 18.2},
+          {OrderNo: "PO-7700045120", Title: "Magnet alloy prototyping", Client: "Vaal Ridge Alloys", ProposalNo: "PRP-AMD-26-021", Value: 640000, Currency: "ZAR", ExchangeRate: 1}
+      );
+      ClearCollect(colDelegations,
+          {Role: "Head", Delegate: "Thabo Nkosi", FromDate: DateAdd(Today(), -2, TimeUnit.Days), ToDate: DateAdd(Today(), 5, TimeUnit.Days)},
+          {Role: "General Manager", Delegate: "Karen Naidoo", FromDate: DateAdd(Today(), 20, TimeUnit.Days), ToDate: DateAdd(Today(), 30, TimeUnit.Days)}
+      );
+      // ---------- The PEF record ----------
+      Set(gblSamplePEF, {ProjectNo: "ADE-52705", SequenceNo: "52705", AutoProjectNo: true, PackageCode: "ADE", Division: "Advanced Materials", DivisionCode: "AMD", DivisionalGroup: "Physical Metallurgy", RevenueStream: "Contract Research", PIC: "MNTV-274C0R-AMD - Mn Ferromagnets 2026", SalesGroup: "Z03 Ferrous metals/Iron Ore", CostCentre: "21000", WorkCentre: "21900", WorkPackage: "AM09 - CFP_MnFerromagnets", Equipment: "Physical Metallurgy Labs", CreateProjectSite: true, ProjectSiteUrl: "http://portal/Divisions/AMD/Projects/ResearchProjects/FY2026Projects/ADE-52705", ProjectTitle: "Mn-based Ferromagnets Development", Description: "Development of rare-earth-free Mn-Al-C ferromagnets at laboratory scale. Running costs are funded by an external research grant; staff time is aligned with the Science Vote project ADR-52702.", Extend: false, Close: false, CheckerRequired: false, Checker: "", CheckerPosition: "", CheckerMintekNo: "", AdminOfficer: "Naledi Khumalo", ResponsiblePerson: "Lerato Mokoena", CIMintekNo: "8478", Head: "Ayesha Patel", HeadMintekNo: "1295", DivisionalManager: "Sipho Dlamini", GeneralManager: "Johan Botha", StartDate: Date(2026, 1, 12), EndDate: Date(2026, 12, 31), ClientPriceInput: 0, ServiceSBURequired: true, ServiceProfit: 0.1, CarryOverLabour: 0, ContingencyByPercent: true, ContingencyPct: 0.05, ContingencyAmount: 0, WarrantyByPercent: false, WarrantyPct: 0, WarrantyAmount: 0, ClientName: "Mintek", SiteName: "Randburg", OrderValue: 0, Currency: "ZAR", ExchangeRate: 1, ProjectType: "Contract Research", Location: "RSA", Risks: "None", Status: "Draft", WorkflowState: "New Project Motivation was not Submitted", Submitted: false, RevisionNo: 0, Created: Date(2025, 12, 5), Modified: DateTime(2026, 10, 6, 15, 58, 0), ClosureDescription: ""});
+      Set(gblNewPEF, Patch(gblSamplePEF, {ProjectNo: "", SequenceNo: "", AutoProjectNo: true, PackageCode: "", Division: "", DivisionCode: "", DivisionalGroup: "", RevenueStream: "", PIC: "", SalesGroup: "", CostCentre: "", WorkCentre: "", WorkPackage: "", Equipment: "", CreateProjectSite: false, ProjectSiteUrl: "", ProjectTitle: "", Description: "", AdminOfficer: "", Head: "", HeadMintekNo: "", DivisionalManager: "", GeneralManager: "", StartDate: Blank(), EndDate: Blank(), ServiceSBURequired: false, ServiceProfit: 0.1, ContingencyByPercent: false, ContingencyPct: 0, ContingencyAmount: 0, ClientName: "", SiteName: "", ProjectType: "", Location: "", Risks: "", Status: "Draft", WorkflowState: "New Project Motivation was not Submitted", Submitted: false, RevisionNo: 0}));
+      Set(gblSampleActuals, {ClientPrice: 409218.01, ProjectCost: 386450, Labour: 329800, OPEX: 29950, Contingency: 12700, Warranty: 0, ServiceSBUs: 14000, ExchangeRate: 1, StartDate: Date(2026, 1, 19), EndDate: Date(2027, 1, 29)});
+      Set(gblBlankActuals, Patch(gblSampleActuals, {ClientPrice: 0, ProjectCost: 0, Labour: 0, OPEX: 0, Contingency: 0, Warranty: 0, ServiceSBUs: 0, ExchangeRate: 1, StartDate: Blank(), EndDate: Blank()}));
+      Set(gblActuals, gblBlankActuals);
+      // ---------- Sample line items (copied into the working collections) ----------
+      ClearCollect(colSampleStaff,
+          {ID: 1, Grade: "D1 - Senior Scientist", StaffInvolved: "Lerato Mokoena", Comments: "Alloy design, test planning and reporting", FinancialYear: "FY2026", CostCentre: "21000", ActivityType: "Professional", Rate: 1210, Hours: 120, Cost: 145200},
+          {ID: 2, Grade: "C2 - Senior Technician", StaffInvolved: "Thandi Mabaso", Comments: "Arc melting and sample preparation", FinancialYear: "FY2026", CostCentre: "21000", ActivityType: "Technical", Rate: 720, Hours: 200, Cost: 144000},
+          {ID: 3, Grade: "E1 - Chief Scientist", StaffInvolved: "Ayesha Patel", Comments: "Technical review of results", FinancialYear: "FY2026", CostCentre: "21000", ActivityType: "Professional", Rate: 1650, Hours: 16, Cost: 26400}
+      );
+      ClearCollect(colSampleRunningCosts,
+          {ID: 1, Description: "High-purity Mn, Al and C feed materials", CostElementTitle: "Consumables", CostElement: 510100, Amount: 18500},
+          {ID: 2, Description: "VSM and XRD characterisation", CostElementTitle: "Internal analytical services", CostElement: 530300, Amount: 6200},
+          {ID: 3, Description: "Conference travel to present results", CostElementTitle: "Travel and accommodation", CostElement: 520200, Amount: 2572.73}
+      );
+      ClearCollect(colSampleMilestones,
+          {ID: 1, Milestone: "Alloy design and literature review complete", BillPct: 0.2, TargetDate: Date(2026, 3, 31)},
+          {ID: 2, Milestone: "40 alloy samples produced and characterised", BillPct: 0.5, TargetDate: Date(2026, 8, 31)},
+          {ID: 3, Milestone: "Final technical report accepted", BillPct: 0.3, TargetDate: Date(2026, 12, 31)}
+      );
+      ClearCollect(colSampleServiceSBUs,
+          {ID: 1, Division: "Analytical Services", SBUHead: "Mpho Radebe", SBUCI: "Precious Sithole", Cost: 12000, DeliveryDate: Date(2026, 6, 30), Description: "SEM and XRD characterisation of 40 alloy samples", Approval: "Pending", ApprovedBy: "", ApprovalDate: If(false, Today())}
+      );
+      ClearCollect(colSampleSBUServices,
+          {ID: 1, SBUID: 1, Description: "SEM imaging, 40 samples", Amount: 7200},
+          {ID: 2, SBUID: 1, Description: "XRD phase analysis, 40 samples", Amount: 4800}
+      );
+      ClearCollect(colSampleDeliverables,
+          {No: 1, Original: "Literature review and alloy design report", Final: "Literature review and alloy design report", Achieved: false, Comment: ""},
+          {No: 2, Original: "30 Mn-Al-C alloy samples produced by arc melting", Final: "40 Mn-Al-C alloy samples produced by arc melting", Achieved: false, Comment: ""},
+          {No: 3, Original: "Magnetic property characterisation (VSM) of all samples", Final: "Magnetic property characterisation (VSM) of all samples", Achieved: false, Comment: ""},
+          {No: 4, Original: "Final technical report", Final: "Final technical report and one conference paper", Achieved: false, Comment: ""}
+      );
+      ClearCollect(colSampleMotivations,
+          {RevNo: 0, RevDate: Date(2025, 12, 5), Motivation: "Mn-based permanent magnets are a rare-earth-free alternative for motors and generators. This project develops Mn-Al-C alloys at laboratory scale. The external grant covers running costs only; staff time is funded through the Science Vote project ADR-52702."}
+      );
+      ClearCollect(colSampleAttachments,
+          {FileNo: 1, FileName: "Proposal_ADE-52705.pdf", FileSize: "1.2 MB", UploadedBy: "Lerato Mokoena", Uploaded: DateTime(2025, 12, 5, 10, 15, 0)},
+          {FileNo: 2, FileName: "Budget_FY2026.xlsx", FileSize: "86 KB", UploadedBy: "Lerato Mokoena", Uploaded: DateTime(2025, 12, 5, 10, 17, 0)},
+          {FileNo: 3, FileName: "PIC_MNTV-274C0R-AMD.pdf", FileSize: "240 KB", UploadedBy: "Lerato Mokoena", Uploaded: DateTime(2025, 12, 8, 14, 2, 0)}
+      );
+      ClearCollect(colSampleRevisions,
+          {Rev: 0, RevDate: Date(2025, 12, 12), ClientPrice: 388575, ProjectCost: 353250, Labour: 300000, OPEX: 25000, Contingency: 16250, Warranty: 0, ServiceSBUs: 12000, Profit: 35325, ProfitPct: 0.1, ExchangeRate: 1, StartDate: Date(2026, 1, 12), EndDate: Date(2026, 10, 31), ProjectType: "Contract Research", Location: "RSA", Risks: "None", Deliverables: "Literature review; 30 alloy samples; VSM characterisation; final report"},
+          {Rev: 1, RevDate: Date(2026, 5, 20), ClientPrice: 398392.5, ProjectCost: 362175, Labour: 307000, OPEX: 26500, Contingency: 16675, Warranty: 0, ServiceSBUs: 12000, Profit: 36217.5, ProfitPct: 0.1, ExchangeRate: 1, StartDate: Date(2026, 1, 12), EndDate: Date(2026, 11, 30), ProjectType: "Contract Research", Location: "RSA", Risks: "None", Deliverables: "Literature review; 40 alloy samples; VSM characterisation; final report"},
+          {Rev: 2, RevDate: Date(2026, 8, 14), ClientPrice: 409218.01, ProjectCost: 372016.37, Labour: 315600, OPEX: 27272.73, Contingency: 17143.64, Warranty: 0, ServiceSBUs: 12000, Profit: 37201.64, ProfitPct: 0.1, ExchangeRate: 1, StartDate: Date(2026, 1, 12), EndDate: Date(2026, 12, 31), ProjectType: "Contract Research", Location: "RSA", Risks: "None", Deliverables: "Literature review; 40 alloy samples; VSM characterisation; final report and conference paper"}
+      );
+      ClearCollect(colSampleNotifiers, ["Thandi Mabaso", "Kobus Steyn"]);
+      ClearCollect(colSampleSelectedProducts, ["Magnetic materials development"]);
+      ClearCollect(colSampleSelectedProposals, ["PRP-AMD-26-014"]);
+      ClearCollect(colSampleSelectedOrders, ["PO-4500123456"]);
+      // ---------- Register (the form library) ----------
+      ClearCollect(colPEFs,
+          {ProjectNo: "ADE-52705", ProjectTitle: "Mn-based Ferromagnets Development", Division: "Advanced Materials", DivisionalGroup: "Physical Metallurgy", RevenueStream: "Contract Research", ResponsiblePerson: "Lerato Mokoena", ProjectCost: 372016.37, ClientPrice: 409218.01, Status: "Draft", WorkflowState: "New Project Motivation was not Submitted", StartDate: Date(2026, 1, 12), EndDate: Date(2026, 12, 31), RevisionNo: 0, Modified: DateTime(2026, 10, 6, 15, 58, 0)},
+          {ProjectNo: "ADR-52702", ProjectTitle: "Science Vote: Rare-earth-free Magnets", Division: "Advanced Materials", DivisionalGroup: "Physical Metallurgy", RevenueStream: "State Grant", ResponsiblePerson: "Lerato Mokoena", ProjectCost: 1185400, ClientPrice: 1303940, Status: "Approved", WorkflowState: "Approved: all approvals complete", StartDate: Date(2025, 4, 1), EndDate: Date(2027, 3, 31), RevisionNo: 1, Modified: DateTime(2025, 9, 2, 11, 20, 0)},
+          {ProjectNo: "ADC-52690", ProjectTitle: "Ti Powder Supply Trials - Kalahari Aero", Division: "Advanced Materials", DivisionalGroup: "Physical Metallurgy", RevenueStream: "Cash", ResponsiblePerson: "Kobus Steyn", ProjectCost: 905000, ClientPrice: 1250000, Status: "Pending Approval", WorkflowState: "Waiting for Head approval", StartDate: Date(2026, 2, 1), EndDate: Date(2026, 9, 30), RevisionNo: 0, Modified: DateTime(2026, 10, 5, 9, 12, 0)},
+          {ProjectNo: "PYE-31544", ProjectTitle: "DC Arc Furnace Chromite Smelting Trials", Division: "Pyrometallurgy", DivisionalGroup: "Pyrometallurgy", RevenueStream: "Contract Research", ResponsiblePerson: "Sibusiso Ndlovu", ProjectCost: 2450000, ClientPrice: 2695000, Status: "Approved", WorkflowState: "Approved: all approvals complete", StartDate: Date(2025, 6, 1), EndDate: Date(2026, 11, 30), RevisionNo: 2, Modified: DateTime(2026, 8, 14, 16, 40, 0)},
+          {ProjectNo: "PYC-31539", ProjectTitle: "Ferrochrome Slag Characterisation", Division: "Pyrometallurgy", DivisionalGroup: "Pyrometallurgy", RevenueStream: "Products and Services", ResponsiblePerson: "Sibusiso Ndlovu", ProjectCost: 296000, ClientPrice: 385000, Status: "Closed", WorkflowState: "Closure approved: project closed", StartDate: Date(2025, 3, 1), EndDate: Date(2025, 11, 30), RevisionNo: 1, Modified: DateTime(2026, 1, 20, 10, 5, 0)},
+          {ProjectNo: "HMR-41720", ProjectTitle: "Lithium Recovery from Brines", Division: "Hydrometallurgy", DivisionalGroup: "Hydrometallurgy", RevenueStream: "State Grant", ResponsiblePerson: "Nomsa Shabalala", ProjectCost: 1640000, ClientPrice: 1804000, Status: "Pending Approval", WorkflowState: "Waiting for Divisional Manager approval", StartDate: Date(2026, 4, 1), EndDate: Date(2028, 3, 31), RevisionNo: 0, Modified: DateTime(2026, 10, 2, 13, 30, 0)},
+          {ProjectNo: "HME-41702", ProjectTitle: "Copper SX Pilot Campaign", Division: "Hydrometallurgy", DivisionalGroup: "Hydrometallurgy", RevenueStream: "Contract Research", ResponsiblePerson: "Nomsa Shabalala", ProjectCost: 2875000, ClientPrice: 3162500, Status: "Rejected", WorkflowState: "Rejected by Head. Reason given: pilot plant availability not confirmed for Q3.", StartDate: Date(2026, 7, 1), EndDate: Date(2027, 2, 28), RevisionNo: 0, Modified: DateTime(2026, 9, 18, 8, 45, 0)},
+          {ProjectNo: "MPW-51211", ProjectTitle: "Gold Plant Optimisation Audit", Division: "Mineral Processing", DivisionalGroup: "Mineral Processing", RevenueStream: "Contract Work", ResponsiblePerson: "Johannes Pretorius", ProjectCost: 412000, ClientPrice: 453200, Status: "Draft", WorkflowState: "Approval for a New Project Motivation was not Started", StartDate: Date(2026, 11, 1), EndDate: Date(2027, 1, 31), RevisionNo: 0, Modified: DateTime(2026, 10, 6, 11, 0, 0)},
+          {ProjectNo: "MPR-51199", ProjectTitle: "Fine Coal Flotation Research", Division: "Mineral Processing", DivisionalGroup: "Mineral Processing", RevenueStream: "State Grant", ResponsiblePerson: "Johannes Pretorius", ProjectCost: 980000, ClientPrice: 1078000, Status: "Approved", WorkflowState: "Approved: all approvals complete", StartDate: Date(2025, 4, 1), EndDate: Date(2027, 3, 31), RevisionNo: 1, Modified: DateTime(2026, 3, 11, 9, 0, 0)},
+          {ProjectNo: "ANR-21418", ProjectTitle: "Nano-gold Catalysts for Fuel Cells", Division: "Advanced Materials", DivisionalGroup: "Nanotechnology", RevenueStream: "State Grant", ResponsiblePerson: "Kagiso Moloi", ProjectCost: 760000, ClientPrice: 836000, Status: "Approved", WorkflowState: "Approved: all approvals complete", StartDate: Date(2025, 4, 1), EndDate: Date(2026, 3, 31), RevisionNo: 0, Modified: DateTime(2025, 5, 28, 14, 10, 0)}
+      );
+      // ---------- Open the sample PEF ----------
+      Set(gblPEF, gblSamplePEF);
+      ClearCollect(colStaff, colSampleStaff); ClearCollect(colRunningCosts, colSampleRunningCosts); ClearCollect(colMilestones, colSampleMilestones); ClearCollect(colServiceSBUs, colSampleServiceSBUs); ClearCollect(colSBUServices, colSampleSBUServices); ClearCollect(colDeliverables, colSampleDeliverables); ClearCollect(colMotivations, colSampleMotivations); ClearCollect(colAttachments, colSampleAttachments); ClearCollect(colRevisions, colSampleRevisions); ClearCollect(colNotifiers, colSampleNotifiers); ClearCollect(colSelectedProducts, colSampleSelectedProducts); ClearCollect(colSelectedProposals, colSampleSelectedProposals); ClearCollect(colSelectedOrders, colSampleSelectedOrders);
+      ClearCollect(colApprovals, {Step: 1, Role: "Checker", Approver: gblPEF.Checker, Required: gblPEF.CheckerRequired, Status: "Not started", ActionDate: If(false, Now()), ActedBy: "", Comments: ""}, {Step: 2, Role: "Head", Approver: gblPEF.Head, Required: true, Status: "Not started", ActionDate: If(false, Now()), ActedBy: "", Comments: ""}, {Step: 3, Role: "Divisional Manager", Approver: gblPEF.DivisionalManager, Required: true, Status: "Not started", ActionDate: If(false, Now()), ActedBy: "", Comments: ""}, {Step: 4, Role: "General Manager", Approver: gblPEF.GeneralManager, Required: gblPEF.RevenueStream in ["Cash", "Products and Services"], Status: "Not started", ActionDate: If(false, Now()), ActedBy: "", Comments: ""});
+      UpdateIf(colApprovals, true, {Status: If(!Required, "Not required", gblPEF.Status in ["Approved", "Closed"], "Approved", gblPEF.Status = "Pending Approval", "Waiting", "Not started"), ActionDate: If(Required && gblPEF.Status in ["Approved", "Closed"], gblPEF.Modified, If(false, Now())), ActedBy: If(Required && gblPEF.Status in ["Approved", "Closed"], Approver, "")});
+      If(gblPEF.Status = "Pending Approval", Patch(colApprovals, First(Filter(colApprovals, Required)), {Status: "Pending"}));
+      Set(gblTotals, With({lab: Sum(colStaff, Cost), opx: Sum(colRunningCosts, Amount), svc: If(gblPEF.ServiceSBURequired, Sum(colServiceSBUs, Cost), 0), com: gblPEF.RevenueStream in ["Cash", "Products and Services"]}, With({base: lab + opx + gblPEF.CarryOverLabour}, With({cont: If(gblPEF.ContingencyByPercent, base * gblPEF.ContingencyPct, gblPEF.ContingencyAmount), warr: If(gblPEF.WarrantyByPercent, base * gblPEF.WarrantyPct, gblPEF.WarrantyAmount)}, With({ctrl: base + cont + warr, svcRev: svc * (1 + gblPEF.ServiceProfit)}, With({cost: ctrl + svc}, With({price: If(com, gblPEF.ClientPriceInput, cost * 1.1)}, {Labour: lab, OPEX: opx, CarryOver: gblPEF.CarryOverLabour, PlannedCosts: base, Contingency: cont, ContingencyPctEff: If(base > 0, cont / base, 0), Warranty: warr, WarrantyPctEff: If(base > 0, warr / base, 0), ControllingCosts: ctrl, ServiceCosts: svc, ServiceRevenue: svcRev, ProjectCost: cost, ClientPrice: price, Profit: price - cost, ProfitPct: If(cost > 0, price / cost - 1, 0), ControllingRevenue: price - svcRev, ControllingProfitPct: If(ctrl > 0, (price - svcRev) / ctrl - 1, 0), ServiceProfitPct: gblPEF.ServiceProfit, IsCommercial: com})))))));
+      Set(gblEditMode, If(gblRole = "Applicant (CI)" && gblPEF.Status in ["Draft", "Rejected"], DisplayMode.Edit, DisplayMode.View));
+      Set(gblDemoLoaded, true)
