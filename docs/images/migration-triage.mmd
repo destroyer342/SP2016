@@ -1,0 +1,30 @@
+---
+config:
+  flowchart:
+    useMaxWidth: false
+    nodeSpacing: 28
+    rankSpacing: 34
+  themeVariables:
+    fontSize: 15px
+---
+flowchart TB
+    classDef q fill:#fff8e1,stroke:#e69500,stroke-width:2px,color:#3e2700
+    classDef retire fill:#eceff1,stroke:#546e7a,stroke-width:2px,color:#263238
+    classDef replace fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#0d2c54
+    classDef rebuild fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#1f0f4d
+    classDef redesign fill:#fce4ec,stroke:#ad1457,stroke-width:2px,color:#4a0a24
+
+    Q1{{"<b>1.</b> Is the workflow still used?<br/>any runs in the last 12 months"}}:::q
+    Q2{{"<b>2.</b> Can a standard feature<br/>do the job? For example,<br/>list rules or built-in approvals"}}:::q
+    Q3{{"<b>3.</b> Is the current logic still<br/>what the business wants?"}}:::q
+    R["<b>RETIRE</b><br/>archive its history, then remove it"]:::retire
+    P["<b>REPLACE</b><br/>configure the standard feature"]:::replace
+    B["<b>REBUILD WITH PARITY</b><br/>same logic, prove it, then improve"]:::rebuild
+    D["<b>REDESIGN</b><br/>agree the new process, then build it"]:::redesign
+
+    Q1 -->|No| R
+    Q1 -->|Yes| Q2
+    Q2 -->|Yes| P
+    Q2 -->|No| Q3
+    Q3 -->|"Yes, or not sure"| B
+    Q3 -->|"No, it has changed"| D

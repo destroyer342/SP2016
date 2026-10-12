@@ -1,0 +1,40 @@
+---
+config:
+  flowchart:
+    useMaxWidth: false
+    nodeSpacing: 22
+    rankSpacing: 22
+    wrappingWidth: 420
+    subGraphTitleMargin:
+      top: 8
+      bottom: 14
+  themeVariables:
+    fontSize: 15px
+---
+flowchart TB
+    classDef once fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#0d2c54
+    classDef each fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#1f0f4d
+    classDef after fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#123d15
+    classDef grp fill:#ffffff,stroke:#b0bec5,stroke-dasharray:4 4,color:#37474f
+
+    subgraph ONCE["ONCE, for the whole estate"]
+        S0["<b>0 · Prepare the platform</b><br/>environments, licences, service account, standards"]:::once
+        S1["<b>1 · Discover</b><br/>list every workflow, form and dependency"]:::once
+        S2["<b>2 · Triage and plan</b><br/>retire, replace, rebuild or redesign; plan the waves"]:::once
+        S0 --> S1 --> S2
+    end
+    subgraph EACH["FOR EACH WORKFLOW, wave by wave"]
+        S3["<b>3 · Export and analyse</b><br/>decode the export, write the analysis"]:::each
+        S4["<b>4 · Design</b><br/>map every action, write the rebuild guide and tests"]:::each
+        S5["<b>5 · Build</b><br/>child flows first, then the main flow, in Development"]:::each
+        S6["<b>6 · Prove parity</b><br/>run the same tests in Nintex and Power Automate"]:::each
+        S7["<b>7 · Go live</b><br/>deploy, switch new starts, let old runs finish"]:::each
+        S3 --> S4 --> S5 --> S6 --> S7
+        S6 -.->|"a difference<br/>is found"| S5
+    end
+    subgraph AFTER["AFTER GO-LIVE"]
+        S8["<b>8 · Operate and improve</b><br/>monitor, fix known defects, retire the Nintex workflow"]:::after
+    end
+    S2 ~~~ S3
+    S7 ~~~ S8
+    class ONCE,EACH,AFTER grp
