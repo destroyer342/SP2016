@@ -23,7 +23,7 @@ flowchart TB
         S2["<b>2 · Triage and plan</b><br/>retire, replace, rebuild or redesign; plan the waves"]:::once
         S0 --> S1 --> S2
     end
-    subgraph EACH["FOR EACH WORKFLOW, wave by wave"]
+    subgraph EACH["FOR EACH WORKFLOW AND FORM, wave by wave"]
         S3["<b>3 · Export and analyse</b><br/>decode the export, write the analysis"]:::each
         S4["<b>4 · Design</b><br/>map every action, write the rebuild guide and tests"]:::each
         S5["<b>5 · Build</b><br/>child flows first, then the main flow, in Development"]:::each

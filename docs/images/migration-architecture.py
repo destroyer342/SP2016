@@ -1,4 +1,4 @@
-# Draws migration-architecture.svg (next to this script): today (SharePoint 2016) -> target (Microsoft 365 / Power Platform).
+# Draws migration-architecture.svg (next to this script): today (SharePoint 2016) -> target (Microsoft 365 / Power Platform / Plumsail Forms).
 # Run: python3 docs/images/migration-architecture.py
 # The PNG is a 2x screenshot of the SVG (any browser or converter will do).
 import os
@@ -87,7 +87,7 @@ arrow(A1, A2, y + h / 2, 'same people, new channels')
 y += h + 14
 # Row: forms
 box(BX, y, BW, h, 'InfoPath forms', ['Project Establishment Form (template.xsn)', 'Client-only form, 7 views, 274 rules'], T_FILL, T_STROKE)
-box(TX, y, TW, h, 'Plumsail Forms', ['Project Establishment Form as a SharePoint list form', 'every field a list column; repeating rows in Data Tables'], *PLUM)
+box(TX, y, TW, h, 'Plumsail Forms', ['Project Establishment Form as a SharePoint list form', 'every field a list column; repeating rows in Data Tables or child lists'], *PLUM)
 arrow(A1, A2, y + h / 2, 'rebuild in Plumsail')
 y += h + 14
 # Row: workflows
@@ -180,7 +180,7 @@ out.insert(PANELS_AT, f'<rect x="{LX}" y="{PY}" width="{LW}" height="{PH}" rx="1
 BY = PY + PH + 22
 BAND_AT = len(out)
 text(50, BY + 30, 'HOW WE GET THERE', 15, 'bold', '#2c1f63')
-text(230, BY + 30, 'the conversion pipeline: every workflow goes through stages 0 to 8', 13, 'normal', '#5f6b7a')
+text(230, BY + 30, 'the conversion pipeline: every workflow and form goes through stages 0 to 8', 13, 'normal', '#5f6b7a')
 stages = [
     ('0', 'Prepare the platform', 'once'), ('1', 'Discover', 'once'), ('2', 'Triage and plan', 'once'),
     ('3', 'Export and analyse', 'each'), ('4', 'Design', 'each'), ('5', 'Build', 'each'),

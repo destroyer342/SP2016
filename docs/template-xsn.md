@@ -574,7 +574,7 @@ Ranked by impact. Each finding names the rule or setting involved so it can be c
 
 - The template is **not browser-enabled**. Users need the **InfoPath Filler 2013** desktop client.
 - Microsoft's support for the InfoPath 2013 client (and InfoPath Forms Services in SharePoint Online) **ended on 14 July 2026** ([MC616550](https://mc.merill.net/message/MC616550)).
-- Microsoft's suggested replacements are Power Apps (form), Power Automate (approvals) and SharePoint lists. **Decision (October 2026): this form will be rebuilt in Plumsail Forms instead of Power Apps**, with Power Automate for the approvals; see the [migration plan](migration-plan.md#infopath-forms-to-plumsail-forms). A migration would carry over:
+- Microsoft's suggested replacements are Power Apps (form), Power Automate (approvals) and SharePoint lists. **Decision (October 2026): this form will be rebuilt in Plumsail Forms instead of Power Apps**, with Power Automate for the approvals; see the [migration plan](migration-plan.md#infopath-forms-to-plumsail-forms). The migration must carry over:
   - the data model ([section 10](#10-main-data-source));
   - the 76 library columns ([section 13](#13-promoted-sharepoint-columns));
   - the numbering logic ([section 7](#7-project-numbering));
@@ -582,7 +582,7 @@ Ranked by impact. Each finding names the rule or setting involved so it can be c
   - the approver resolution and delegation rules ([section 5](#5-roles-and-how-they-are-resolved));
   - the Nintex approval workflow, which has to be analysed separately. It is not in this repo: [`Proposal_Approval.nwf`](../Proposal_Approval.nwf) is a different workflow, for draft proposal documents (see [proposal-approval-nwf.md](proposal-approval-nwf.md)).
 
-  Fixing the findings in [section 16](#16-findings-bugs-risks-and-clean-up) during the migration avoids carrying them over.
+  Agree with the process owner which findings in [section 16](#16-findings-bugs-risks-and-clean-up) are fixed during the rebuild, and which are copied for parity and fixed after go-live, as the [migration plan](migration-plan.md#4-principles) does for workflows.
 
 ---
 
