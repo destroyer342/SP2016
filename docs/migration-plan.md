@@ -8,18 +8,19 @@ Contents:
 
 1. [Summary](#1-summary)
 2. [Why we have to move](#2-why-we-have-to-move)
-3. [Principles](#3-principles)
-4. [The conversion pipeline](#4-the-conversion-pipeline)
-5. [The stages in detail](#5-the-stages-in-detail)
-6. [Triage and sizing](#6-triage-and-sizing)
-7. [Phases and timeline](#7-phases-and-timeline)
-8. [Roles and responsibilities](#8-roles-and-responsibilities)
-9. [How Nintex building blocks map to Power Automate](#9-how-nintex-building-blocks-map-to-power-automate)
-10. [Main risks](#10-main-risks)
-11. [Where we are now](#11-where-we-are-now)
-12. [Checklist for each workflow](#12-checklist-for-each-workflow)
-13. [Glossary](#13-glossary)
-14. [Sources](#14-sources)
+3. [Architecture: today and target](#3-architecture-today-and-target)
+4. [Principles](#4-principles)
+5. [The conversion pipeline](#5-the-conversion-pipeline)
+6. [The stages in detail](#6-the-stages-in-detail)
+7. [Triage and sizing](#7-triage-and-sizing)
+8. [Phases and timeline](#8-phases-and-timeline)
+9. [Roles and responsibilities](#9-roles-and-responsibilities)
+10. [How Nintex building blocks map to Power Automate](#10-how-nintex-building-blocks-map-to-power-automate)
+11. [Main risks](#11-main-risks)
+12. [Where we are now](#12-where-we-are-now)
+13. [Checklist for each workflow](#13-checklist-for-each-workflow)
+14. [Glossary](#14-glossary)
+15. [Sources](#15-sources)
 
 ---
 
@@ -27,9 +28,9 @@ Contents:
 
 - **Why.** SharePoint Server 2016 and InfoPath 2013 have been out of Microsoft support since 14 July 2026. SharePoint Online no longer runs the older SharePoint 2013 workflows (since 2 April 2026), so our workflows cannot simply be moved to the cloud as they are. Our Nintex workflows depend on SharePoint 2016, so they have to be rebuilt.
 - **Where to.** Power Automate cloud flows, with Approvals, Microsoft Teams and Outlook for the people steps, and Power Apps where we need forms (the InfoPath forms are being replaced the same way).
-- **How.** Every workflow goes through the same nine-stage **conversion pipeline** (section 4). Stages 0 to 2 happen once for the whole estate. Stages 3 to 8 are repeated for each workflow, in waves.
+- **How.** Every workflow goes through the same nine-stage **conversion pipeline** (section 5). Stages 0 to 2 happen once for the whole estate. Stages 3 to 8 are repeated for each workflow, in waves.
 - **Rebuild first, improve second.** We first rebuild each workflow with **exactly the same logic**, including its known defects, and prove it with side-by-side tests. Only then do we fix the defects and improve the process. This keeps every change visible and every result testable.
-- **Pilot.** *Proposal Approval*, one of our largest Nintex workflows (195 actions), is the pilot. Its analysis and a complete step-by-step rebuild guide are already done (section 11).
+- **Pilot.** *Proposal Approval*, one of our largest Nintex workflows (195 actions), is the pilot. Its analysis and a complete step-by-step rebuild guide are already done (section 12).
 - **Decisions needed now:**
   1. the target for the SharePoint data (SharePoint Online, or SharePoint 2016 behind a gateway);
   2. the Power Platform environments and licences;
@@ -52,7 +53,32 @@ Running unsupported software is a growing security and operational risk. The soo
 
 ---
 
-## 3. Principles
+## 3. Architecture: today and target
+
+![High-level architecture: today and target](images/migration-architecture.png)
+
+*Left: what runs today on SharePoint Server 2016. Right: where each part goes in Microsoft 365 and the Power Platform. Middle: what happens to each part. Bottom: the conversion pipeline (section 5) that moves each workflow.*
+
+| Today (SharePoint 2016) | What happens | Target (Microsoft 365 and Power Platform) |
+|---|---|---|
+| People work in the browser, InfoPath Filler 2013 and e-mail | Same people, new channels | Browser, Microsoft Teams, Outlook and mobile |
+| InfoPath forms, such as the Project Establishment Form | Rebuild as an app | Power Apps canvas app |
+| Nintex Workflow 2016 workflows, child workflows and user-defined actions | Rebuild with parity | Power Automate cloud flows and child flows, packaged in solutions |
+| Nintex task forms in the Workflow Tasks list | Replace | Approvals for approve or reject; Teams adaptive cards for data entry |
+| E-mail from the farm's default sender | Replace | Outlook, sent from a shared mailbox |
+| SharePoint 2016 sites and lists | Migrate the data | SharePoint Online, with the same names and columns. A gateway is the alternative while some lists stay on SharePoint 2016 |
+| Nintex workflow history | Archive | Flow run history, plus an optional history list |
+
+**Platform foundation.** Everything on the target side sits on a common foundation:
+
+- three environments (Development → Test → Production) with a deployment pipeline;
+- solutions that package the flows with their settings;
+- environment variables for the site addresses, so no address is hard-coded;
+- connection references owned by one service account;
+- governance: a data-loss-prevention policy, run-only users and monitoring;
+- Dataverse, which stores the approvals and the solution data.
+
+## 4. Principles
 
 1. **Same logic first.** Each workflow is rebuilt to behave exactly as it does today. Known defects are copied on purpose and marked, so nothing changes without a decision.
 2. **Prove it.** A workflow goes live only when the same test scenarios give the same results in Nintex and in Power Automate.
@@ -63,7 +89,7 @@ Running unsupported software is a growing security and operational risk. The soo
 
 ---
 
-## 4. The conversion pipeline
+## 5. The conversion pipeline
 
 ![The conversion pipeline](images/migration-pipeline.png)
 
@@ -83,7 +109,7 @@ Running unsupported software is a growing security and operational risk. The soo
 
 ---
 
-## 5. The stages in detail
+## 6. The stages in detail
 
 ### Stage 0 · Prepare the platform (once)
 
@@ -128,8 +154,8 @@ Running unsupported software is a growing security and operational risk. The soo
 
 **What we do:**
 
-- **Decide each workflow's fate** with the [triage tree](#6-triage-and-sizing): **retire**, **replace** with a standard feature, **rebuild with parity**, or **redesign**.
-- **Size it:** small, medium or large (section 6).
+- **Decide each workflow's fate** with the [triage tree](#7-triage-and-sizing): **retire**, **replace** with a standard feature, **rebuild with parity**, or **redesign**.
+- **Size it:** small, medium or large (section 7).
 - **Group the workflows into waves** of similar size and shared dependencies. Workflows that share a user-defined action or a list go in the same wave, so the shared parts are built once.
 - **Order the waves** by business importance and risk. Workflows on sites with the most sensitive data, or that stop the business when they fail, go first.
 
@@ -164,7 +190,7 @@ Running unsupported software is a growing security and operational risk. The soo
 
 **What we do:**
 
-- **Map every Nintex action** to a Power Automate step, using the [cheat sheet](#9-how-nintex-building-blocks-map-to-power-automate) and the standard patterns.
+- **Map every Nintex action** to a Power Automate step, using the [cheat sheet](#10-how-nintex-building-blocks-map-to-power-automate) and the standard patterns.
 - **Decide the people steps:**
   - approvals become **Approvals**;
   - data-entry tasks become **Teams adaptive cards** or a **Power App**;
@@ -239,7 +265,7 @@ Running unsupported software is a growing security and operational risk. The soo
 
 ---
 
-## 6. Triage and sizing
+## 7. Triage and sizing
 
 ### Deciding what happens to each workflow
 
@@ -268,7 +294,7 @@ These efforts are **planning assumptions**. We replace them with real figures af
 
 ---
 
-## 7. Phases and timeline
+## 8. Phases and timeline
 
 The timeline is in weeks from the start of the programme. Phases overlap on purpose.
 
@@ -284,7 +310,7 @@ The length of phase 4 depends on the size of the inventory from stage 1. We will
 
 ---
 
-## 8. Roles and responsibilities
+## 9. Roles and responsibilities
 
 | Role | Responsibilities |
 |---|---|
@@ -299,7 +325,7 @@ The length of phase 4 depends on the size of the inventory from stage 1. We will
 
 ---
 
-## 9. How Nintex building blocks map to Power Automate
+## 10. How Nintex building blocks map to Power Automate
 
 | Nintex | Power Automate |
 |---|---|
@@ -327,7 +353,7 @@ The [rebuild guide](../powerautomate/proposal-approval-flow/README.md) shows eve
 
 ---
 
-## 10. Main risks
+## 11. Main risks
 
 | Risk | Impact | How we handle it |
 |---|---|---|
@@ -344,7 +370,7 @@ The [rebuild guide](../powerautomate/proposal-approval-flow/README.md) shows eve
 
 ---
 
-## 11. Where we are now
+## 12. Where we are now
 
 | Item | Status | Where |
 |---|---|---|
@@ -368,7 +394,7 @@ The [rebuild guide](../powerautomate/proposal-approval-flow/README.md) shows eve
 
 ---
 
-## 12. Checklist for each workflow
+## 13. Checklist for each workflow
 
 **Stage 3 · Export and analyse**
 
@@ -410,7 +436,7 @@ The [rebuild guide](../powerautomate/proposal-approval-flow/README.md) shows eve
 
 ---
 
-## 13. Glossary
+## 14. Glossary
 
 | Term | Meaning |
 |---|---|
@@ -431,7 +457,7 @@ The [rebuild guide](../powerautomate/proposal-approval-flow/README.md) shows eve
 
 ---
 
-## 14. Sources
+## 15. Sources
 
 - Microsoft: [SharePoint Migration Tool – workflow migration overview](https://learn.microsoft.com/sharepointmigration/spmt-workflow-overview). The tool converts SharePoint Designer and out-of-the-box workflows only, not Nintex, and the result can behave differently from the original.
 - Microsoft 365 Message Center [MC542767 – SharePoint 2013 workflow retirement](https://mc.merill.net/message/MC542767) (2 April 2026).

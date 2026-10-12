@@ -23,7 +23,7 @@ python3 tools/nwf-decode/nwf_decode.py Proposal_Approval.nwf > Proposal_Approval
 - a count of each action type;
 - every dependency to rebuild: user-defined actions, child workflows, task forms and the lists it queries;
 - every hard-coded URL;
-- a suggested size (Small, Medium or Large; see [Triage and sizing](../../docs/migration-plan.md#6-triage-and-sizing)).
+- a suggested size (Small, Medium or Large; see [Triage and sizing](../../docs/migration-plan.md#7-triage-and-sizing)).
 
 ## What the full tree shows
 
