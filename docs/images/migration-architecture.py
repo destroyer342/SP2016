@@ -47,8 +47,8 @@ def arrow(x1, x2, y, label, color='#455a64', dash=None):
 
 # ---- canvas, title
 out.append(f'<rect width="{W}" height="{H}" fill="#ffffff"/>')
-text(40, 46, 'High-level architecture: from SharePoint 2016 workflows to Power Automate', 26, 'bold', '#2c1f63')
-text(40, 74, 'Left: what runs today. Right: where each part goes. Middle: what happens to it. Bottom: the pipeline that moves each workflow.', 14, 'normal', '#5f6b7a')
+text(40, 46, 'High-level architecture: from SharePoint 2016 to Power Automate and Plumsail Forms', 26, 'bold', '#2c1f63')
+text(40, 74, 'Left: what runs today. Right: where each part goes. Middle: what happens to it. Bottom: the pipeline that moves each workflow and form.', 14, 'normal', '#5f6b7a')
 
 # ---- panels
 LX, LW = 30, 520          # today panel
@@ -60,14 +60,14 @@ text(LX + 92, PY + 32, 'SharePoint Server 2016 farm, on-premises', 15, 'bold', '
 rect(LX + 20, PY + 44, 268, 22, '#fdecea', '#c62828', rx=11, sw=1)
 text(LX + 154, PY + 59, 'Out of support since 14 July 2026', 12, 'bold', '#c62828', 'middle')
 text(RX + 20, PY + 32, 'TARGET', 18, 'bold', '#0f4c81')
-text(RX + 108, PY + 32, 'Microsoft 365 and Power Platform, cloud', 15, 'bold', '#0f4c81')
+text(RX + 108, PY + 32, 'Microsoft 365, Power Platform and Plumsail Forms, cloud', 15, 'bold', '#0f4c81')
 text(RX + 20, PY + 59, 'Same people and the same data; the logic is rebuilt and proven, then improved.', 12.5, 'normal', '#37474f', italic=True)
 text((LX + LW + RX) / 2, PY + 32, 'WHAT HAPPENS', 15, 'bold', '#455a64', 'middle')
 
 # colours
 T_FILL, T_STROKE = '#f3eeeb', '#8d6e63'
 PA = ('#e3f0fc', '#0f6cbd')        # Power Automate
-PAPPS = ('#f3e8fb', '#7a3db8')     # Power Apps
+PLUM = ('#f3e8fb', '#7a3db8')      # Plumsail Forms
 M365 = ('#e8eafc', '#4f52b2')      # Approvals, Teams, Outlook
 SPO = ('#e0f4f2', '#03787c')       # SharePoint Online
 FND = ('#eef1f5', '#546e7a')       # platform foundation
@@ -87,8 +87,8 @@ arrow(A1, A2, y + h / 2, 'same people, new channels')
 y += h + 14
 # Row: forms
 box(BX, y, BW, h, 'InfoPath forms', ['Project Establishment Form (template.xsn)', 'Client-only form, 7 views, 274 rules'], T_FILL, T_STROKE)
-box(TX, y, TW, h, 'Power Apps', ['Project Establishment Form as a canvas app', '(demo already in powerapps/pef-canvas-app)'], *PAPPS)
-arrow(A1, A2, y + h / 2, 'rebuild as an app')
+box(TX, y, TW, h, 'Plumsail Forms', ['Project Establishment Form as a SharePoint list form', 'every field a list column; repeating rows in Data Tables'], *PLUM)
+arrow(A1, A2, y + h / 2, 'rebuild in Plumsail')
 y += h + 14
 # Row: workflows
 wf_h = bh(['x'] * 6)
@@ -156,6 +156,7 @@ items = [
     ('Connection references', ['one service account', 'owns the connections']),
     ('Governance', ['DLP policy, run-only', 'users, monitoring']),
     ('Dataverse', ['stores approvals and', 'solution metadata']),
+    ('Plumsail Forms app', ['installed in the tenant', 'and licensed']),
 ]
 iy = fy + 42
 for title, lines in items:

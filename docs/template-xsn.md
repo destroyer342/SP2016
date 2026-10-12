@@ -574,7 +574,7 @@ Ranked by impact. Each finding names the rule or setting involved so it can be c
 
 - The template is **not browser-enabled**. Users need the **InfoPath Filler 2013** desktop client.
 - Microsoft's support for the InfoPath 2013 client (and InfoPath Forms Services in SharePoint Online) **ended on 14 July 2026** ([MC616550](https://mc.merill.net/message/MC616550)).
-- Microsoft's suggested replacements are Power Apps (form), Power Automate (approvals) and SharePoint lists. A migration would carry over:
+- Microsoft's suggested replacements are Power Apps (form), Power Automate (approvals) and SharePoint lists. **Decision (October 2026): this form will be rebuilt in Plumsail Forms instead of Power Apps**, with Power Automate for the approvals; see the [migration plan](migration-plan.md#infopath-forms-to-plumsail-forms). A migration would carry over:
   - the data model ([section 10](#10-main-data-source));
   - the 76 library columns ([section 13](#13-promoted-sharepoint-columns));
   - the numbering logic ([section 7](#7-project-numbering));
